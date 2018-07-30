@@ -2,8 +2,6 @@
 
 namespace cuttle {
 	namespace fileui {
-		void module_compile();
-		void module_compile_options();
-		void module_compile_
+		void module_compile(const std::string& modulePath);
 	}
 }

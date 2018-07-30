@@ -6,10 +6,10 @@ include(CMakeToolsHelpers OPTIONAL)
 
 file(GLOB SRCS "src/lib/*.cpp")
 file(GLOB SRCS_MAIN "src/*.cpp")
-file(GLOB TEST_SRCS "tests/*.cpp")
+file(GLOB_RECURSE TEST_SRCS "tests/*.cpp")
 
 file(GLOB HEADERS "src/lib/*.hpp")
-file(GLOB TEST_HEADERS "tests/lib/*.hpp")
+file(GLOB_RECURSE TEST_HEADERS "tests/lib/*.hpp")
 
 #set(DEPS_PARSER_SRCS_TEST_lst
 #	"context.cpp"
@@ -23,12 +23,12 @@ set(CMAKE_CXX_FLAGS_DEBUG
 set(CMAKE_CXX_FLAGS_RELEASE
   "${CMAKE_CXX_FLAGS_RELEASE} -std=c++14")
 
-if(UNIX)
+if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
   set(CMAKE_CXX_FLAGS_DEBUG
     "${CMAKE_CXX_FLAGS_DEBUG} -Wextra")
   set(CMAKE_CXX_FLAGS_RELEASE
     "${CMAKE_CXX_FLAGS_RELEASE} -Wextra")
-elseif(WIN32)
+elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Zi")
 	#set(CMAKE_SHARED_LINKER_FLAGS_DEBUG "${CMAKE_SHARED_LINKER_FLAGS_RELEASE} /DEBUG /OPT:REF /OPT:ICF")
 	#set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /Ox")
@@ -46,7 +46,7 @@ add_executable(cuttle_fileui ${SRCS_MAIN} ${HEADERS})
 
 target_include_directories(cuttle_fileui PRIVATE "src/lib/")
 target_include_directories(cuttle_fileui_lib PRIVATE "src/lib/" "src/")
-target_include_directories(cuttle_fileui_tests PRIVATE "src/lib/" "tests/")
+target_include_directories(cuttle_fileui_tests PRIVATE "src/lib/" "tests/" "tests/cuttle-test/src/")
 
 target_link_libraries(cuttle_fileui_lib cuttle_parser)
 target_link_libraries(cuttle_fileui_lib cuttle_generator)

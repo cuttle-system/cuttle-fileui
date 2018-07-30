@@ -1,5 +1,8 @@
-#include "compiler.hpp"
+#include <string>
+#include "module_compiler.hpp"
 
-void cuttle::fileui::lang_compile() {
+void cuttle::fileui::module_compile(const std::string& moduleName) {
+    using namespace cuttle::fileui;
+
 
 }

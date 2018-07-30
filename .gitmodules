@@ -10,3 +10,6 @@
 [submodule "deps/cuttle-generator"]
 	path = deps/cuttle-generator
 	url = https://github.com/cuttle-system/cuttle-generator
+[submodule "tests\\cuttle-test"]
+	path = tests\\cuttle-test
+	url = git@github.com:cuttle-system/cuttle-test.git
