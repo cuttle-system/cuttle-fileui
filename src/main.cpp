@@ -34,4 +34,7 @@ int main(int argc, char *argv[]) {
 	char *modulePath = nullptr;
 	parse_args(argc, argv, &modulePath);
 
+	if (modulePath) {
+
+	}
 }
