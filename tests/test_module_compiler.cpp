@@ -1,27 +1,46 @@
 #include <iostream>
 #include <fstream>
 #include <boost/filesystem.hpp>
-//#include <experimental/filesystem>
 #include "test.hpp"
+#include "module_compiler.hpp"
 #include "test_module_compiler.hpp"
+#include "module_duplicate_error.hpp"
 
 using namespace std;
 
-inline void test_can_compile_options() {
-	AssertTrue(false, "Not implemented");
-    string data = "This is a test data";
-    ofstream os("test_file_access.txt", ios::out);
-    os << data;
-    os.close();
+inline boost::filesystem::path create_tmp() {
+    using namespace boost::filesystem;
+    path tmp = current_path() / "tmp";
+    remove_all(tmp);
+    create_directory(tmp);
+    return tmp;
+}
 
-    string str;
-    ifstream is("test_file_access.txt", ios::in);
-    getline(is, str);
-    AssertTrue(str == data, "Name constructor");
-    is.close();
+inline void test_can_search_module() {
+    using namespace cuttle::fileui;
+
+    {
+        boost::filesystem::path tmp = create_tmp();
+        boost::filesystem::create_directory(tmp / "fooModule");
+        boost::filesystem::create_directory(tmp / "barModule");
+        std::list<boost::filesystem::path> search_path = {tmp};
+        auto result = search_module("fooModule", search_path);
+        AssertEqual(tmp / "fooModule", result, "Module path");
+    }
+    {
+        boost::filesystem::path tmp = create_tmp();
+        boost::filesystem::create_directories(tmp / "modulesA" / "fooModule");
+        boost::filesystem::create_directories(tmp / "modulesA" / "barModule");
+        boost::filesystem::create_directories(tmp / "modulesB" / "fooModule");
+        boost::filesystem::create_directories(tmp / "modulesB" / "bazModule");
+        std::list<boost::filesystem::path> search_path = {tmp / "modulesA", tmp / "modulesB"};
+        AssertThrows(module_duplicate_error, {
+            search_module("fooModule", search_path);
+        });
+    }
 }
 
 void run_module_compiler_tests() {
 	TESTCASE
-	test_can_compile_options();
+	test_can_search_module();
 }
