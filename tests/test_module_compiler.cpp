@@ -10,9 +10,8 @@ using namespace std;
 
 inline boost::filesystem::path create_tmp() {
     using namespace boost::filesystem;
-    path tmp = current_path() / "tmp";
-    remove_all(tmp);
-    create_directory(tmp);
+    path tmp = current_path() / "tmp" / unique_path();
+    create_directories(tmp);
     return tmp;
 }
 
@@ -25,7 +24,7 @@ inline void test_can_search_module() {
         boost::filesystem::create_directory(tmp / "barModule");
         std::list<boost::filesystem::path> search_path = {tmp};
         auto result = search_module("fooModule", search_path);
-        AssertEqual(tmp / "fooModule", result, "Module path");
+        AssertEqual(result, tmp / "fooModule", "Module path");
     }
     {
         boost::filesystem::path tmp = create_tmp();
@@ -37,6 +36,16 @@ inline void test_can_search_module() {
         AssertThrows(module_duplicate_error, {
             search_module("fooModule", search_path);
         });
+    }
+    {
+        boost::filesystem::path tmp = create_tmp();
+        boost::filesystem::create_directories(tmp / "modulesA" / "fooModule");
+        boost::filesystem::create_directories(tmp / "modulesA" / "barModule");
+        boost::filesystem::create_directories(tmp / "modulesB" / "barModule");
+        boost::filesystem::create_directories(tmp / "modulesB" / "bazModule");
+        std::list<boost::filesystem::path> search_path = {tmp / "modulesA", tmp / "modulesB"};
+        auto result = search_module("bazModule", search_path);
+        AssertEqual(result, tmp / "modulesB" / "bazModule", "Module path");
     }
 }
 

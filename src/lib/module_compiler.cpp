@@ -25,5 +25,5 @@ void cuttle::fileui::compile_module(const std::string &module_name,
                                     const std::list<boost::filesystem::path> &search_path) {
     using namespace cuttle::fileui;
 
-    search_module(module_name, search_path);
+    auto module_path = search_module(module_name, search_path);
 }
