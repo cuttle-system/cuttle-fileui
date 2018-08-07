@@ -1,10 +1,10 @@
 function commit() {
-  git checkout master
-  git submodule update --remote --recursive
-  git add --all
-  git commit
-  git pull
-  git push origin master
+    git checkout master
+    git submodule update --remote --recursive
+    git add --all
+    git commit
+    git pull
+    git push origin master
 }
 
 cd tests/cuttle-test
