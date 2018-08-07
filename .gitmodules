@@ -1,25 +1,20 @@
 [submodule "deps/cuttle-vm"]
 	path = deps/cuttle-vm
-	url = https://github.com/cuttle-system/cuttle-vm
+	url = git@github.com:cuttle-system/cuttle-vm
 	branch = master
 [submodule "deps/cuttle-parser"]
 	path = deps/cuttle-parser
-	url = https://github.com/cuttle-system/cuttle-parser
+	url = git@github.com:cuttle-system/cuttle-parser
 	branch = master
 [submodule "deps/cuttle-translator"]
 	path = deps/cuttle-translator
-	url = https://github.com/cuttle-system/cuttle-translator
+	url = git@github.com:cuttle-system/cuttle-translator
 	branch = master
 [submodule "deps/cuttle-generator"]
 	path = deps/cuttle-generator
-	url = https://github.com/cuttle-system/cuttle-generator
+	url = git@github.com:cuttle-system/cuttle-generator
 	branch = master
 [submodule "tests/cuttle-test"]
 	path = tests/cuttle-test
 	url = git@github.com:cuttle-system/cuttle-test.git
 	branch = master
-[submodule "deps/boost"]
-	path = deps/boost
-	url = https://github.com/boostorg/boost.git
-	ignore = dirty
-	update = none
