@@ -2,14 +2,17 @@
 	path = deps/cuttle-vm
 	url = git@github.com:cuttle-system/cuttle-vm
 	branch = master
+	fetchRecurseSubmodules = true
 [submodule "deps/cuttle-parser"]
 	path = deps/cuttle-parser
 	url = git@github.com:cuttle-system/cuttle-parser
 	branch = master
+	fetchRecurseSubmodules = true
 [submodule "deps/cuttle-translator"]
 	path = deps/cuttle-translator
 	url = git@github.com:cuttle-system/cuttle-translator
 	branch = master
+	fetchRecurseSubmodules = true
 [submodule "deps/cuttle-generator"]
 	path = deps/cuttle-generator
 	url = git@github.com:cuttle-system/cuttle-generator
