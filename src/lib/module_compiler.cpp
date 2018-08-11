@@ -41,8 +41,8 @@ void cuttle::fileui::compile_functions(
 ) {
     using namespace boost::filesystem;
 
-    for (auto function_path_it : directory_iterator(module_path)) {
-        path function_path = function_path_it.path();
+    for (const auto& function_path_it : directory_iterator(module_path)) {
+        const path& function_path = function_path_it.path();
         cuttle::fileui::compile_function(
             function_path,
             module_path,

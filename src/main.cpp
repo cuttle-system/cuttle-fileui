@@ -1,17 +1,21 @@
 #include <cstring>
+#include <string>
 #include <iostream>
+#include <boost/filesystem.hpp>
+#include "module_compiler.hpp"
 
-#define CMD_MESSAGE argv[0] << " module_path [(-h|--help)]" << std::endl
+#define CMD_MESSAGE argv[0] << " module_name [-mp module_path1:modulepath2] [(-h|--help)]" << std::endl
 
 #define HELP_MESSAGE \
 	"Usage:" << std::endl \
-	<< "\tmodule_path - path to the module to compile" << std::endl \
+	<< "\tmodule_name - name of the module to compile" << std::endl \
+	<< "\t-mp module_path - module search paths (use ':' to separate them, e.g /foo/bar:foobar/baz)" << std::endl \
 	<< "\t-h|--help - display help message and exit"
 
 #define BAD_ARGS_ERROR_MESSAGE \
 	"Invalid args"
 
-void parse_args(int argc, char *argv[], char **modulePath) {
+void parse_args(int argc, char *argv[], char **module_name, char **module_path) {
 	using namespace std;
 	for (int i = 1; i < argc; ++i) {
 		if (strcmp(argv[i], "--help") == 0
@@ -20,21 +24,46 @@ void parse_args(int argc, char *argv[], char **modulePath) {
 			std::cout << CMD_MESSAGE << std::endl;
 			std::cout << HELP_MESSAGE;
 			exit(0);
-		}
-	}
-	if (argc != 2) {
-		std::cout << CMD_MESSAGE;
-		std::cout << BAD_ARGS_ERROR_MESSAGE;
-		exit(0);
-	}
-	*modulePath = argv[1];
+		} else if (strcmp(argv[i], "-mp") == 0) {
+		    ++i;
+		    if (i < argc) {
+                *module_path = argv[i];
+            } else {
+                std::cout << BAD_ARGS_ERROR_MESSAGE << std::endl;
+                std::cout << HELP_MESSAGE;
+                exit(0);
+		    }
+		} else {
+		    if (*module_path) {
+                std::cout << BAD_ARGS_ERROR_MESSAGE << std::endl;
+                std::cout << HELP_MESSAGE;
+                exit(0);
+		    }
+            *module_name = argv[i];
+        }
+    }
+}
+
+void construct_search_path(char *c_module_path, std::list<boost::filesystem::path>& search_path) {
+    search_path.push_back(boost::filesystem::current_path());
+
+    if (c_module_path) {
+        c_module_path = strdup(c_module_path);
+        char *path = strtok(c_module_path, ":");
+        while (path) {
+            search_path.emplace_back(path);
+            path = strtok(nullptr, ":");
+        }
+        free(c_module_path);
+    }
 }
 
 int main(int argc, char *argv[]) {
-	char *modulePath = nullptr;
-	parse_args(argc, argv, &modulePath);
+    char *c_module_name = nullptr, *c_module_path = nullptr;
+	parse_args(argc, argv, &c_module_name, &c_module_path);
 
-	if (modulePath) {
+    std::list<boost::filesystem::path> search_path;
+    construct_search_path(c_module_path, search_path);
 
-	}
+    cuttle::fileui::compile_module(c_module_name, search_path);
 }

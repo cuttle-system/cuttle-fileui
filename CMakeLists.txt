@@ -39,7 +39,7 @@ add_library(cuttle_fileui_lib SHARED ${SRCS} ${BOOST_SRCS} ${HEADERS})
 add_executable(cuttle_fileui_tests ${TEST_SRCS} ${HEADERS} ${TEST_HEADERS})
 add_executable(cuttle_fileui ${SRCS_MAIN} ${HEADERS})
 
-target_include_directories(cuttle_fileui PRIVATE "src/lib/")
+target_include_directories(cuttle_fileui PRIVATE "src/lib/" "${Boost_INCLUDE_DIR}/libs/filesystem/include" "${Boost_INCLUDE_DIR}")
 target_include_directories(cuttle_fileui_lib PRIVATE "src/lib/" "src/" "${Boost_INCLUDE_DIR}/libs/filesystem/include" "${Boost_INCLUDE_DIR}")
 target_include_directories(cuttle_fileui_tests PRIVATE "src/lib/" "tests/" "tests/cuttle-test/src/" "${Boost_INCLUDE_DIR}/libs/filesystem/include" "${Boost_INCLUDE_DIR}")
 
