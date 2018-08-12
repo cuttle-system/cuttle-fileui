@@ -3,6 +3,7 @@
 #include <iostream>
 #include <boost/filesystem.hpp>
 #include "module_compiler.hpp"
+#include "compile_state.hpp"
 
 #define CMD_MESSAGE argv[0] << " module_name [-mp module_path1:modulepath2] [(-h|--help)]" << std::endl
 
@@ -14,6 +15,10 @@
 
 #define BAD_ARGS_ERROR_MESSAGE \
 	"Invalid args"
+
+#define SUCCESS_MESSAGE \
+    "You can see compiled version of your module at " \
+    << cuttle::fileui::get_compiled_module_path(module_path) << std::endl;
 
 void parse_args(int argc, char *argv[], char **module_name, char **module_path) {
 	using namespace std;
@@ -27,6 +32,11 @@ void parse_args(int argc, char *argv[], char **module_name, char **module_path) 
 		} else if (strcmp(argv[i], "-mp") == 0) {
 		    ++i;
 		    if (i < argc) {
+                if (*module_path) {
+                    std::cout << BAD_ARGS_ERROR_MESSAGE << std::endl;
+                    std::cout << HELP_MESSAGE;
+                    exit(0);
+                }
                 *module_path = argv[i];
             } else {
                 std::cout << BAD_ARGS_ERROR_MESSAGE << std::endl;
@@ -34,7 +44,7 @@ void parse_args(int argc, char *argv[], char **module_name, char **module_path) 
                 exit(0);
 		    }
 		} else {
-		    if (*module_path) {
+		    if (*module_name) {
                 std::cout << BAD_ARGS_ERROR_MESSAGE << std::endl;
                 std::cout << HELP_MESSAGE;
                 exit(0);
@@ -42,9 +52,14 @@ void parse_args(int argc, char *argv[], char **module_name, char **module_path) 
             *module_name = argv[i];
         }
     }
+    if (!*module_path || !*module_name) {
+        std::cout << BAD_ARGS_ERROR_MESSAGE << std::endl;
+        std::cout << HELP_MESSAGE;
+        exit(0);
+    }
 }
 
-void construct_search_path(char *c_module_path, std::list<boost::filesystem::path>& search_path) {
+void construct_search_path(char *c_module_path, std::list<boost::filesystem::path> &search_path) {
     search_path.push_back(boost::filesystem::current_path());
 
     if (c_module_path) {
@@ -65,5 +80,7 @@ int main(int argc, char *argv[]) {
     std::list<boost::filesystem::path> search_path;
     construct_search_path(c_module_path, search_path);
 
-    cuttle::fileui::compile_module(c_module_name, search_path);
+    cuttle::fileui::compile_state state {search_path};
+    auto module_path = cuttle::fileui::compile_module(c_module_name, state);
+    std::cout << SUCCESS_MESSAGE;
 }

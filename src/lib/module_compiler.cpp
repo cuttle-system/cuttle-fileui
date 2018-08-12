@@ -2,13 +2,29 @@
 #include <boost/filesystem.hpp>
 #include "module_compiler.hpp"
 #include "module_duplicate_error.hpp"
+#include "compile_state.hpp"
 
-boost::filesystem::path cuttle::fileui::search_module(const std::string& module_name, const std::list<boost::filesystem::path> &search_path) {
+boost::filesystem::path cuttle::fileui::get_compiled_module_path(const boost::filesystem::path &module_path) {
+    auto module_name = module_path.filename();
+    return module_path.parent_path() / COMPILED_PATH_PREFIX / module_name;
+}
+
+boost::filesystem::path cuttle::fileui::get_compiled_function_path(const boost::filesystem::path &function_path) {
+    using namespace cuttle::fileui;
+    auto function_name = function_path.filename();
+    auto compiled_module_path = get_compiled_module_path(function_path.parent_path());
+    return compiled_module_path / function_name;
+}
+
+boost::filesystem::path cuttle::fileui::search_module(
+    const std::string& module_name,
+    const cuttle::fileui::compile_state& state
+) {
     using namespace boost::filesystem;
 
     bool found = false;
     boost::filesystem::path found_path;
-    for (const auto& path : search_path) {
+    for (const auto& path : state.search_path) {
         auto expected_path = path / module_name;
         if (boost::filesystem::exists(expected_path)) {
             if (found) {
@@ -21,23 +37,22 @@ boost::filesystem::path cuttle::fileui::search_module(const std::string& module_
     return found_path;
 }
 
-boost::filesystem::path cuttle::fileui::compile_function(
+void cuttle::fileui::compile_function(
     const boost::filesystem::path &function_path,
     const boost::filesystem::path &module_path,
-    const boost::filesystem::path &compiled_module_path
+    cuttle::fileui::compile_state& state
 ) {
     using namespace boost::filesystem;
 
-    std::string function_name = function_path.filename().string();
-    path compiled_function_path = compiled_module_path / function_name;
-    boost::filesystem::create_directory(compiled_function_path);
+    auto function_name = function_path.filename();
+    path compiled_function_path = get_compiled_function_path(function_path);
+    boost::filesystem::create_directories(compiled_function_path);
     // compilation process
-    return compiled_function_path;
 }
 
 void cuttle::fileui::compile_functions(
     const boost::filesystem::path &module_path,
-    const boost::filesystem::path &compiled_module_path
+    cuttle::fileui::compile_state& state
 ) {
     using namespace boost::filesystem;
 
@@ -46,20 +61,18 @@ void cuttle::fileui::compile_functions(
         cuttle::fileui::compile_function(
             function_path,
             module_path,
-            compiled_module_path
+            state
         );
     }
 }
 
 boost::filesystem::path cuttle::fileui::compile_module(
     const std::string &module_name,
-    const std::list<boost::filesystem::path> &search_path
+    cuttle::fileui::compile_state& state
 ) {
     using namespace cuttle::fileui;
 
-    auto module_path = search_module(module_name, search_path);
-    auto compiled_module_path = module_path.parent_path() / "cutvm.compiled" / module_name;
-    boost::filesystem::create_directories(compiled_module_path);
-    compile_functions(module_path, compiled_module_path);
-    return compiled_module_path;
+    auto module_path = search_module(module_name, state);
+    compile_functions(module_path, state);
+    return module_path;
 }
