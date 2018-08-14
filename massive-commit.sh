@@ -1,4 +1,4 @@
-function commit() {
+commit() {
     git checkout master
     git submodule update --remote --recursive
     git add --all
@@ -24,6 +24,10 @@ commit
 cd ../..
 
 cd deps/cuttle-vm
+commit
+cd ../..
+
+cd deps/cuttle-lang
 commit
 cd ../..
 

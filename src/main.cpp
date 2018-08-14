@@ -74,6 +74,7 @@ void construct_search_path(char *c_module_path, std::list<boost::filesystem::pat
 }
 
 int main(int argc, char *argv[]) {
+    setenv("LC_ALL", "C", 1);
     char *c_module_name = nullptr, *c_module_path = nullptr;
 	parse_args(argc, argv, &c_module_name, &c_module_path);
 
