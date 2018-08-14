@@ -21,3 +21,6 @@
 	path = tests/cuttle-test
 	url = git@github.com:cuttle-system/cuttle-test.git
 	branch = master
+[submodule "deps/cuttle-lang"]
+	path = deps/cuttle-lang
+	url = git@github.com:cuttle-system/cuttle-lang.git

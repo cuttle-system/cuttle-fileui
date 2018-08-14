@@ -34,6 +34,7 @@ add_subdirectory(deps/cuttle-parser)
 add_subdirectory(deps/cuttle-translator)
 add_subdirectory(deps/cuttle-generator)
 add_subdirectory(deps/cuttle-vm)
+add_subdirectory(deps/cuttle-lang)
 
 add_library(cuttle_fileui_lib SHARED ${SRCS} ${BOOST_SRCS} ${HEADERS})
 add_executable(cuttle_fileui_tests ${TEST_SRCS} ${HEADERS} ${TEST_HEADERS})
@@ -46,6 +47,8 @@ target_include_directories(cuttle_fileui_tests PRIVATE "src/lib/" "tests/" "test
 target_link_libraries(cuttle_fileui_lib cuttle_parser)
 target_link_libraries(cuttle_fileui_lib cuttle_generator)
 target_link_libraries(cuttle_fileui_lib cuttle_translator)
+target_link_libraries(cuttle_fileui_lib cuttle_vm)
+target_link_libraries(cuttle_fileui_lib cuttle_lang)
 target_link_libraries(cuttle_fileui_lib ${Boost_LIBRARIES})
 
 target_link_libraries(cuttle_fileui_tests cuttle_fileui_lib)
