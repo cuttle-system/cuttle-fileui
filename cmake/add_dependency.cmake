@@ -1,0 +1,5 @@
+macro(add_dependency name)
+    if(NOT TARGET ${name})
+      add_subdirectory(../${name})
+    endif()
+endmacro()
