@@ -1,6 +1,7 @@
 #!/bin/bash
 commit() {
     git checkout master
+    git pull
     git submodule update --remote --recursive
     git add --all
     git commit
