@@ -1,3 +1,4 @@
+cd $(dirname "$0")/..
 git clone git@github.com:boostorg/boost.git deps/boost
 cd deps/boost
 git checkout boost-1.65.1

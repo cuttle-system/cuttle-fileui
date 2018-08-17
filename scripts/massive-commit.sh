@@ -1,3 +1,4 @@
+#!/bin/bash
 commit() {
     git checkout master
     git submodule update --remote --recursive
@@ -6,6 +7,8 @@ commit() {
     git pull
     git push origin master
 }
+
+cd $(dirname "$0")/..
 
 cd tests/cuttle-test
 commit
