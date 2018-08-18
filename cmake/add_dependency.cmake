@@ -1,5 +1,5 @@
 macro(add_dependency name)
     if(NOT TARGET ${name})
-      add_subdirectory(../${name})
+      add_subdirectory(../${name} deps/${name})
     endif()
 endmacro()

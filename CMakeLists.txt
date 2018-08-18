@@ -1,8 +1,10 @@
 cmake_minimum_required(VERSION 3.0.2)
-project(CuttleFileUI VERSION 0.2 LANGUAGES CXX)
+project(CuttleParser VERSION 0.2 LANGUAGES CXX)
+
 set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 include(CMakeToolsHelpers OPTIONAL)
 include(add_dependency)
+
 set(CMAKE_BUILD_TYPE Debug)
 
 set(BOOST_ROOT ../boost)
@@ -24,12 +26,16 @@ endif()
 
 set(SRC_INCLUDE_DIRECTORIES
     "src/lib/"
+    "../cuttle-parser/src"
+    "../cuttle-translator/src"
+    "../cuttle-generator/src"
     "${Boost_INCLUDE_DIR}/libs/filesystem/include"
     "${Boost_INCLUDE_DIR}")
 
 file(GLOB SRCS "src/lib/*.cpp")
 file(GLOB SRCS_MAIN "src/*.cpp")
 file(GLOB_RECURSE TEST_SRCS "tests/*.cpp")
+file(GLOB CUTTLE_TEST_SRCS "../cuttle-test/src/*.cpp")
 
 file(GLOB HEADERS "src/lib/*.hpp")
 file(GLOB_RECURSE TEST_HEADERS "tests/lib/*.hpp")
@@ -41,7 +47,7 @@ add_dependency(cuttle-vm)
 add_dependency(cuttle-lang)
 
 add_library(cuttle-fileui-lib SHARED ${SRCS} ${BOOST_SRCS} ${HEADERS})
-add_executable(cuttle-fileui-tests ${TEST_SRCS} ${HEADERS} ${TEST_HEADERS})
+add_executable(cuttle-fileui-tests ${CUTTLE_TEST_SRCS} ${TEST_SRCS} ${HEADERS} ${TEST_HEADERS})
 add_executable(cuttle-fileui ${SRCS_MAIN} ${HEADERS})
 
 target_include_directories(cuttle-fileui PRIVATE ${SRC_INCLUDE_DIRECTORIES})
@@ -49,7 +55,7 @@ target_include_directories(cuttle-fileui-lib PRIVATE ${SRC_INCLUDE_DIRECTORIES})
 target_include_directories(cuttle-fileui-tests
     PRIVATE
     "tests/"
-    "tests/cuttle-test/src/"
+    "../cuttle-test/src/"
     ${SRC_INCLUDE_DIRECTORIES})
 
 target_link_libraries(cuttle-fileui-lib
