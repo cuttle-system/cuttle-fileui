@@ -8,7 +8,7 @@ cd boost
 git checkout boost-1.65.1
 git submodule update --init
 ./bootstrap.sh gcc
-./b2 --with-filesystem --build-type=minimal variant=release --toolset=gcc address-model=64 stage --layout=system 
+./b2 --with-filesystem --with-test --build-type=minimal variant=release --toolset=gcc address-model=64 stage --layout=system
 
 cd $WORKSPACE_PATH
 
@@ -34,7 +34,3 @@ cd $WORKSPACE_PATH
 
 git clone git@github.com:cuttle-system/cuttle-lang.git
 cuttle-lang/scripts/get-deps.sh
-
-cd $WORKSPACE_PATH
-
-git clone git@github.com:cuttle-system/cuttle-test.git

@@ -64,10 +64,11 @@ void construct_search_path(char *c_module_path, std::list<boost::filesystem::pat
 
     if (c_module_path) {
         c_module_path = strdup(c_module_path);
-        char *path = strtok(c_module_path, ":");
+        char *saveptr1;
+        char *path = strtok_r(c_module_path, ":", &saveptr1);
         while (path) {
             search_path.emplace_back(path);
-            path = strtok(nullptr, ":");
+            path = strtok_r(nullptr, ":", &saveptr1);
         }
         free(c_module_path);
     }
