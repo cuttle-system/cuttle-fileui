@@ -9,9 +9,9 @@
 
 #define HELP_MESSAGE \
 	"Usage:" << std::endl \
-	<< "\tmodule_name - name of the module to compile" << std::endl \
-	<< "\t-mp module_path - module search paths (use ':' to separate them, e.g /foo/bar:foobar/baz)" << std::endl \
-	<< "\t-h|--help - display help message and exit"
+	<< "    module_name     - name of the module to compile" << std::endl \
+	<< "    -mp module_path - module search paths (use ':' to separate them, e.g /foo/bar:foobar/baz)" << std::endl \
+	<< "    -h|--help       - display help message and exit" << std::endl
 
 #define BAD_ARGS_ERROR_MESSAGE \
 	"Invalid args"
