@@ -1,18 +1,9 @@
-file(GLOB SRCS "lib/*.cpp")
-file(GLOB SRCS_MAIN "*.cpp")
+file(GLOB SRCS "*.cpp")
+
+add_subdirectory(lib)
 
 include_directories("lib/")
-link_libraries(
-    cuttle-parser
-    cuttle-generator
-    cuttle-translator
-    cuttle-vm
-    cuttle-lang
-    ${Boost_SYSTEM_LIBRARY}
-    ${Boost_FILESYSTEM_LIBRARY})
+link_libraries(cuttle-fileui)
 
-add_library(cuttle-fileui SHARED ${SRCS})
-add_executable(cuttle-fileui-bin ${SRCS_MAIN})
-target_link_libraries(cuttle-fileui-bin cuttle-fileui)
-
+add_executable(cuttle-fileui-bin ${SRCS})
 set_target_properties(cuttle-fileui-bin PROPERTIES OUTPUT_NAME cuttle-fileui)
