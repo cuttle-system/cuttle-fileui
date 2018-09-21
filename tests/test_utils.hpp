@@ -9,7 +9,14 @@ inline std::string get_current_datetime() {
     time_t rawtime;
     time(&rawtime);
     struct tm *timeinfo = localtime(&rawtime);
-    return asctime(timeinfo);
+    std::string timestr = asctime(timeinfo);
+    if (timestr.back() == '\n') {
+        timestr.pop_back();
+    }
+    for (auto &ch : timestr) {
+        if (ch == ':' || ch == ' ') ch = '_';
+    }
+    return timestr;
 }
 
 inline boost::filesystem::path create_tmp() {
@@ -17,6 +24,7 @@ inline boost::filesystem::path create_tmp() {
     std::string datetime = get_current_datetime();
     std::string test_case_name = current_test_case().p_name;
     auto tmp = boost::filesystem::temp_directory_path()
+            / "cuttle-fileui"
             / datetime
             / test_case_name
             / boost::filesystem::unique_path();
