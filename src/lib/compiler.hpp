@@ -19,7 +19,7 @@ namespace cuttle {
 		        const std::string &module_name);
 
         void compile_file(compile_state &state, const boost::filesystem::path &file_path,
-                          boost::filesystem::path compiled_file_path = "");
+                          const boost::filesystem::path &compiled_file_path = "");
 
 		void compile_files(compile_state &state, const boost::filesystem::path &module_path);
 	}

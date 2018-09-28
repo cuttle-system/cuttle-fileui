@@ -50,14 +50,18 @@ BOOST_AUTO_TEST_SUITE(compile_file_suite)
 
     BOOST_AUTO_TEST_CASE(case1) {
         path tmp = create_tmp();
-        path file_path = tmp / "foo.py";
+        path file_path = tmp / "foo.cutc";
         path cutc_path = file_path.string() + ".cutc";
         path compiled_file_path = file_path.string() + ".cutvm";
         path compiled_cutc_path = cutc_path.string() + ".cutvm";
 
         std::ofstream cutc_file(cutc_path.string());
-        cutc_file << "'A'.1 to 'B'.2";
+        cutc_file << "'cutc-tokenizer'.1 to 'cutvm'.1";
         cutc_file.close();
+
+        std::ofstream src_file(file_path.string());
+        src_file << R"(normal_string "'" -> "'")";
+        src_file.close();
 
         list<path> search_path = {tmp};
         compile_state state {search_path, {}};
@@ -69,14 +73,25 @@ BOOST_AUTO_TEST_SUITE(compile_file_suite)
 
         BOOST_CHECK_EQUAL(compiled_cutc_src, "b s to\n"
                                              "b s .\n"
-                                             "b s A\n"
+                                             "b s cutc-tokenizer\n"
                                              "b i 1\n"
                                              "c 0 3 array\n"
                                              "b s .\n"
-                                             "b s B\n"
-                                             "b i 2\n"
+                                             "b s cutvm\n"
+                                             "b i 1\n"
                                              "c 0 3 array\n"
                                              "c 0 3 array");
+
+        std::ifstream compiled_file(compiled_file_path.string());
+        std::string compiled_file_src((std::istreambuf_iterator<char>(compiled_file)),
+                                      std::istreambuf_iterator<char>());
+
+        BOOST_CHECK_EQUAL(compiled_file_src, "b s normal_string\n"
+                                             "b s ->\n"
+                                             "b s '\n"
+                                             "b s '\n"
+                                             "c 0 3 array\n"
+                                             "c 0 2 array");
     }
 
 BOOST_AUTO_TEST_SUITE_END()
