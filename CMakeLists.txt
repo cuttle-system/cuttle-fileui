@@ -39,6 +39,8 @@ include_directories(
         "../cuttle-parser/src"
         "../cuttle-translator/src"
         "../cuttle-generator/src"
+        "../cuttle-vm/src"
+        "../cuttle-lang/src"
         "${Boost_INCLUDE_DIR}/libs/filesystem/include"
         "${Boost_INCLUDE_DIR}")
 

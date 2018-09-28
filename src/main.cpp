@@ -2,7 +2,7 @@
 #include <string>
 #include <iostream>
 #include <boost/filesystem.hpp>
-#include "module_compiler.hpp"
+#include "compiler.hpp"
 #include "compile_state.hpp"
 
 #define CMD_MESSAGE argv[0] << " module_name [-mp module_path1:modulepath2] [(-h|--help)]" << std::endl
@@ -76,6 +76,7 @@ void construct_search_path(char *c_module_path, std::list<boost::filesystem::pat
 
 int main(int argc, char *argv[]) {
     setenv("LC_ALL", "C", 1);
+
     char *c_module_name = nullptr, *c_module_path = nullptr;
 	parse_args(argc, argv, &c_module_name, &c_module_path);
 
