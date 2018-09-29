@@ -5,12 +5,12 @@
 
 namespace cuttle {
 	namespace fileui {
-		class incorrect_module_structure_error : public std::runtime_error {
+		class incorrect_module_structure_error : public std::logic_error {
 		public:
-			incorrect_module_structure_error() : runtime_error("Incorrect module structure error") {}
+			incorrect_module_structure_error() : logic_error("Incorrect module structure error") {}
 
             explicit incorrect_module_structure_error(const boost::filesystem::path &path)
-					: runtime_error("Incorrect module structure error at '" + path.string() + "'") {}
+					: logic_error("Incorrect module structure error at '" + path.string() + "'") {}
 		};
 	}
 }

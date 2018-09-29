@@ -112,6 +112,58 @@ BOOST_FIXTURE_TEST_SUITE(compile_file_suite, compile_file_suite_fixture)
                                            "c 2 0 array");
     }
 
+    BOOST_AUTO_TEST_CASE(case2) {
+        path tmp = create_tmp();
+        path file_path = tmp / "foo.A";
+        path cutc_path = file_path.string() + ".cutc";
+        path compiled_file_path = file_path.string() + ".cutvm";
+        path compiled_cutc_path = cutc_path.string() + ".cutvm";
+        path output_file_path = tmp / "foo.B";
+
+        path A_tokenizer_cutc_path = tmp / "A.1" / "tokenizer" / "rules.cutc.cutc";
+        path A_tokenizer_path = tmp / "A.1" / "tokenizer" / "rules.cutc";
+
+        create_directories(tmp / "A.1" / "tokenizer");
+
+        std::ofstream A_tokenizer_cutc_file(A_tokenizer_cutc_path.string());
+        A_tokenizer_cutc_file << "just 'cutc-tokenizer'.1";
+        A_tokenizer_cutc_file.close();
+
+        std::ofstream A_tokenizer_file(A_tokenizer_path.string());
+        A_tokenizer_file << R"(normal_string "'" -> "'")";
+        A_tokenizer_file.close();
+
+        path B_tokenizer_cutc_path = tmp / "B.1" / "tokenizer" / "rules.cutc.cutc";
+        path B_tokenizer_path = tmp / "B.1" / "tokenizer" / "rules.cutc";
+
+        create_directories(tmp / "B.1" / "tokenizer");
+
+        std::ofstream B_tokenizer_cutc_file(B_tokenizer_cutc_path.string());
+        B_tokenizer_cutc_file << "just 'cutc-tokenizer'.1";
+        B_tokenizer_cutc_file.close();
+
+        std::ofstream B_tokenizer_file(B_tokenizer_path.string());
+        B_tokenizer_file << R"(normal_string "_" -> "_")";
+        B_tokenizer_file.close();
+
+        std::ofstream cutc_file(cutc_path.string());
+        cutc_file << "'A'.1 to 'B'.1";
+        cutc_file.close();
+
+        std::ofstream src_file(file_path.string());
+        src_file << "'foo' ''";
+        src_file.close();
+
+        state.search_path = {tmp};
+        compile_file(state, file_path, compiled_file_path, output_file_path);
+
+        std::ifstream output_file(output_file_path.string());
+        std::string output_file_src((std::istreambuf_iterator<char>(output_file)),
+                                      std::istreambuf_iterator<char>());
+
+        BOOST_CHECK_EQUAL(output_file_src, "_foo_\n__");
+    }
+
 BOOST_AUTO_TEST_SUITE_END()
 
 BOOST_FIXTURE_TEST_SUITE(compile_file_cache_read_suite, compile_file_suite_fixture)

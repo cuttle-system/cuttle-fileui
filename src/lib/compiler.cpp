@@ -21,6 +21,8 @@
 #include "tokenizer.hpp"
 #include "vm_context_methods.hpp"
 #include "std.hpp"
+#include "dictionary_methods.hpp"
+#include "format_error.hpp"
 
 namespace fs = boost::filesystem;
 
@@ -47,6 +49,20 @@ fs::path cuttle::fileui::get_compiled_file_path(const fs::path &file_path) {
 
     auto module_path = get_parent_module_path(file_path);
     auto compiled_module_path = get_compiled_module_path(module_path);
+    auto relative_file_path = fs::relative(file_path, module_path);
+    return compiled_module_path / relative_file_path;
+}
+
+fs::path cuttle::fileui::get_output_module_path(const fs::path &module_path) {
+    auto module_name = module_path.filename().string();
+    return module_path.parent_path() / (module_name + CUTTLE_FILEUI_OUTPUT_PATH_POSTFIX);
+}
+
+fs::path cuttle::fileui::get_output_file_path(const fs::path &file_path) {
+    using namespace cuttle::fileui;
+
+    auto module_path = get_parent_module_path(file_path);
+    auto compiled_module_path = get_output_module_path(module_path);
     auto relative_file_path = fs::relative(file_path, module_path);
     return compiled_module_path / relative_file_path;
 }
@@ -103,8 +119,13 @@ void get_languages_config(const call_tree_t &tree, const tokens_t &tokens, langu
     from.name = tokens[tree.src[tree.src[tree.src.back()[0]][0]][0]].value;
     from.version = std::stoi(tokens[tree.src[tree.src[tree.src.back()[0]][0]][1]].value);
 
-    to.name = tokens[tree.src[tree.src[tree.src.back()[0]][1]][0]].value;
-    to.version = std::stoi(tokens[tree.src[tree.src[tree.src.back()[0]][1]][1]].value);
+    if (tree.src[tree.src.back()[0]].size() == 2) {
+        to.name = tokens[tree.src[tree.src[tree.src.back()[0]][1]][0]].value;
+        to.version = std::stoi(tokens[tree.src[tree.src[tree.src.back()[0]][1]][1]].value);
+    } else {
+        to.name = TRANSLATOR_ANY_NAME;
+        to.version = TRANSLATOR_ANY_VERSION;
+    }
 }
 
 void interpret_file(vm::context_t &context, const path &file_path, std::deque<vm::value_t> &arg_stack) {
@@ -154,7 +175,29 @@ void construct_tree(vm::context_t &context, std::deque<vm::value_t> &arg_stack, 
     tree.src.push_back({i});
 }
 
-void get_language_info(const language_t &lang,
+void compile_without_generation(compile_state &state, const path &file_path, path compiled_file_path,
+                                call_tree_t &new_tree, values_t &values, language_t &from, language_t &to);
+
+void get_tokenizer_from_tree(const path &file_path, const call_tree_t &tree, const values_t &values, tokenizer_config_t &tokenizer) {
+    for (auto root_index : tree.src.back()) {
+        if (values[root_index].type == value_type::func_name) {
+            if (values[root_index].value == "normal_string") {
+                auto index = tree.src[root_index][0];
+                if (values[index].type == value_type::func_name && values[index].value == "->") {
+                    tokenizer.normal_string[values[tree.src[index][0]].value].insert(values[tree.src[index][1]].value);
+                } else {
+                    throw format_error("expected '->' symbol '" + values[root_index].value + "'", file_path);
+                }
+            } else {
+                throw format_error("undefined property '" + values[root_index].value + "'", file_path);
+            }
+        } else {
+            throw format_error("non-function symbol in root", file_path);
+        }
+    }
+}
+
+void get_language_info(compile_state &state, const language_t &lang,
     context_t &context, tokenizer_config_t &tokenizer, generator_config_t &generator_config
 ) {
     if (lang.name == "cutc-tokenizer" && lang.version == 1) {
@@ -165,19 +208,31 @@ void get_language_info(const language_t &lang,
         lang::get_cutvm_tokenizer_config(tokenizer);
         lang::get_cutvm_generator_config(generator_config);
     } else {
-        // TODO: search module...
+        language_t from, to;
+        auto module_path = search_module(state, lang.name + "." + std::to_string(lang.version));
+
+        call_tree_t tokenizer_tree;
+        values_t tokenizer_values;
+        path tokenizer_file_path = module_path / "tokenizer" / "rules.cutc";
+        compile_without_generation(state, tokenizer_file_path, "",
+                tokenizer_tree, tokenizer_values, from, to);
+        get_tokenizer_from_tree(tokenizer_file_path, tokenizer_tree, tokenizer_values, tokenizer);
     }
 }
 
-void get_language_translator(const language_t &from, const language_t &to, translator_t &translator) {
+void get_language_translator(compile_state &state, const language_t &from, const language_t &to, translator_t &translator) {
     if (to.name == "cutvm" && to.version == 1) {
         lang::get_cutvm_translator(translator);
+    } else if (to.name == TRANSLATOR_ANY_NAME && to.version == TRANSLATOR_ANY_VERSION) {
+        initialize(translator.dictionary);
+        translator.to = to;
+        translator.from = from;
     } else {
         // TODO: search module...
     }
 }
 
-void get_cached(compile_state &state, const path &file_path, const path &cutc_path, path compiled_file_path,
+void get_cached(compile_state &state, const path &file_path, const path &cutc_path, path& compiled_file_path,
     language_t &from, language_t &to, call_tree_t &tree, tokens_t &tokens
 ) {
     if (compiled_file_path.empty()) compiled_file_path = get_compiled_file_path(file_path);
@@ -221,7 +276,7 @@ void get_cached(compile_state &state, const path &file_path, const path &cutc_pa
         initialize(context);
 
         get_languages_config(cutc_tree, cutc_tokens, from, to);
-        get_language_info(from, context, tokenizer, generator_config);
+        get_language_info(state, from, context, tokenizer, generator_config);
 
         call_tree_t file_compiled_tree;
         values_t file_compiled_values;
@@ -246,30 +301,42 @@ void get_cached(compile_state &state, const path &file_path, const path &cutc_pa
     }
 }
 
-void cuttle::fileui::compile_file(compile_state &state, const boost::filesystem::path &file_path,
-                                  const boost::filesystem::path &compiled_file_path, const boost::filesystem::path &output_file_path) {
+void compile_without_generation(compile_state &state, const path &file_path, path compiled_file_path,
+                                call_tree_t &new_tree, values_t &values, language_t &from, language_t &to) {
     path cutc_path = file_path.string() + ".cutc";
 
     call_tree_t tree;
     tokens_t tokens;
 
+    get_cached(state, file_path, cutc_path, compiled_file_path, from, to, tree, tokens);
+
+    translator_t translator;
+    get_language_translator(state, from, to, translator);
+    translate(translator, tokens, tree, values, new_tree);
+}
+
+void cuttle::fileui::compile_file(compile_state &state, const path &file_path,
+                                  const path &compiled_file_path, path output_file_path) {
+    if (output_file_path.empty()) output_file_path = get_output_file_path(file_path);
+
+    values_t values;
+    call_tree_t new_tree;
     language_t from, to;
 
-    get_cached(state, file_path, cutc_path, compiled_file_path, from, to, tree, tokens);
+    compile_without_generation(state, file_path, compiled_file_path,
+                               new_tree, values,
+                               from, to);
 
     context_t context;
     tokenizer_config_t tokenizer_config;
     generator_config_t generator_config;
-    translator_t translator;
 
     initialize(context);
-    get_language_info(to, context, tokenizer_config, generator_config);
-    get_language_translator(from, to, translator);
-
-    values_t values;
-    call_tree_t new_tree;
-    translate(translator, tokens, tree, values, new_tree);
-
+    if (to.name == TRANSLATOR_ANY_NAME && to.version == TRANSLATOR_ANY_VERSION) {
+        get_language_info(state, from, context, tokenizer_config, generator_config);
+    } else {
+        get_language_info(state, to, context, tokenizer_config, generator_config);
+    }
     generator_state_t generator_state;
     generate(tokenizer_config, generator_config, context, values, new_tree, generator_state);
 
