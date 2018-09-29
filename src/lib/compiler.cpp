@@ -188,6 +188,32 @@ void get_tokenizer_range_from_tree(const path &file_path, tree_src_element_t roo
     }
 }
 
+void get_tokenizer_map_from_tree(const path &file_path, tree_src_element_t root_index,
+                                   const call_tree_t &tree, const values_t &values, tokenizer_map_t &tokenizer_map, bool reverse = false) {
+    auto index = tree.src[root_index][0];
+    if (values[index].type == value_type::func_name && values[index].value == "->") {
+        if (reverse) {
+            tokenizer_map[values[tree.src[index][1]].value] = values[tree.src[index][0]].value;
+        } else {
+            tokenizer_map[values[tree.src[index][0]].value] = values[tree.src[index][1]].value;
+        }
+    } else {
+        throw format_error("expected '->' symbol '" + values[root_index].value + "'", file_path);
+    }
+}
+
+void get_tokenizer_symbol_set_from_tree(const path &file_path, tree_src_element_t root_index,
+                                   const call_tree_t &tree, const values_t &values, tokenizer_symbol_set_t &symbol_set) {
+    auto index = tree.src[root_index][0];
+    symbol_set.insert(values[tree.src[index][0]].value);
+}
+
+void get_boolean_from_tree(const path &file_path, tree_src_element_t root_index,
+                                        const call_tree_t &tree, const values_t &values, bool &output) {
+    auto index = tree.src[root_index][0];
+    output = values[tree.src[index][1]].value == "true";
+}
+
 void get_tokenizer_from_tree(const path &file_path, const call_tree_t &tree, const values_t &values, tokenizer_config_t &tokenizer) {
     for (auto root_index : tree.src.back()) {
         if (values[root_index].type == value_type::func_name) {
@@ -203,6 +229,15 @@ void get_tokenizer_from_tree(const path &file_path, const call_tree_t &tree, con
                 get_tokenizer_range_from_tree(file_path, root_index, tree, values, tokenizer.macro_pf);
             } else if (values[root_index].value == "macro_p") {
                 get_tokenizer_range_from_tree(file_path, root_index, tree, values, tokenizer.macro_p);
+            } else if (values[root_index].value == "separated_symbols") {
+                get_tokenizer_symbol_set_from_tree(file_path, root_index, tree, values, tokenizer.separated_symbols);
+            } else if (values[root_index].value == "macro_if") {
+                get_tokenizer_symbol_set_from_tree(file_path, root_index, tree, values, tokenizer.macro_if);
+            } else if (values[root_index].value == "formatted_characters") {
+                get_tokenizer_map_from_tree(file_path, root_index, tree, values, tokenizer.formatted_characters);
+                get_tokenizer_map_from_tree(file_path, root_index, tree, values, tokenizer.formatted_characters_output, true);
+            } else if (values[root_index].value == "separate_digit_and_alpha") {
+                get_boolean_from_tree(file_path, root_index, tree, values, tokenizer.separate_digit_and_alpha);
             } else {
                 throw format_error("undefined property '" + values[root_index].value + "'", file_path);
             }

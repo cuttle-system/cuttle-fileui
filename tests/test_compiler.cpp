@@ -95,8 +95,8 @@ BOOST_FIXTURE_TEST_SUITE(compile_file_suite, compile_file_suite_fixture)
 
         BOOST_CHECK_EQUAL(compiled_file_src, "b s normal_string\n"
                                              "b s ->\n"
-                                             "b s '\n"
-                                             "b s '\n"
+                                             "b s \\'\n"
+                                             "b s \\'\n"
                                              "c 3 0 array\n"
                                              "c 2 0 array");
 
@@ -106,8 +106,8 @@ BOOST_FIXTURE_TEST_SUITE(compile_file_suite, compile_file_suite_fixture)
 
         BOOST_CHECK_EQUAL(output_file_src, "b s normal_string\n"
                                            "b s ->\n"
-                                           "b s '\n"
-                                           "b s '\n"
+                                           "b s \\'\n"
+                                           "b s \\'\n"
                                            "c 3 0 array\n"
                                            "c 2 0 array");
     }
@@ -223,8 +223,8 @@ BOOST_FIXTURE_TEST_SUITE(compile_file_cache_read_suite, compile_file_suite_fixtu
 
         BOOST_CHECK_EQUAL(output_file_src, "b s normal_string\n"
                                              "b s ->\n"
-                                             "b s '\n"
-                                             "b s '\n"
+                                             "b s \\'\n"
+                                             "b s \\'\n"
                                              "c 3 0 array\n"
                                              "c 2 0 array");
     }
