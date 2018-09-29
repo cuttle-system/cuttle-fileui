@@ -19,6 +19,7 @@
 #include "incorrect_module_structure_error.hpp"
 #include "lang_tokenizer.hpp"
 #include "tokenizer.hpp"
+#include "vm_context_methods.hpp"
 #include "std.hpp"
 
 namespace fs = boost::filesystem;
@@ -114,8 +115,43 @@ void interpret_file(vm::context_t &context, const path &file_path, std::deque<vm
     config_file.close();
 }
 
-void construct_tree(std::deque<vm::value_t> &arg_stack, call_tree_t &tree, tokens_t &tokens) {
-    int size = arg_stack.size();
+token_t token_from_vm_value(vm::context_t &context, const vm::value_t &value) {
+    vm::value_t ret;
+    switch (value.type.id) {
+        case vm::type_id::string:
+            return token_t{token_type::string, *value.data.string};
+        case vm::type_id::integral:
+            vm::call(context, "string", {value}, 1, ret);
+            return token_t{token_type::number, *ret.data.string};
+        default:
+            throw std::invalid_argument("A token can't be constructed from the value");
+    }
+}
+
+tree_src_element_t construct_tree_inner(vm::context_t &context, const std::vector<vm::value_t> &call_array, call_tree_t &tree, tokens_t &tokens) {
+    const std::string &function_name = *call_array[0].data.string;
+    tree_src_element_t function_index = (tree_src_element_t) tokens.size(), child_index;
+    tokens.push_back({token_type::string, function_name});
+    tree.src.push_back({});
+
+    for (unsigned i = 1; i < call_array.size(); ++i) {
+        if (call_array[i].type.id == vm::type_id::array) {
+            child_index = construct_tree_inner(context, *call_array[i].data.array, tree, tokens);
+        } else {
+            child_index = (tree_src_element_t) tokens.size();
+            tree.src.push_back({});
+            tokens.push_back(token_from_vm_value(context, call_array[i]));
+        }
+        tree.src[function_index].push_back(child_index);
+    }
+
+    return function_index;
+}
+
+void construct_tree(vm::context_t &context, std::deque<vm::value_t> &arg_stack, call_tree_t &tree, tokens_t &tokens) {
+    const std::vector<vm::value_t> &call_array = *arg_stack.begin()->data.array;
+    auto i = construct_tree_inner(context, call_array, tree, tokens);
+    tree.src.push_back({i});
 }
 
 void get_cached(compile_state &state, const path &file_path, const path &cutc_path, path compiled_file_path,
@@ -185,10 +221,10 @@ void get_cached(compile_state &state, const path &file_path, const path &cutc_pa
         interpret_file(vm_context1, compiled_cutc_path, cutc_stack);
         interpret_file(vm_context2, compiled_file_path, stack);
 
-        construct_tree(cutc_stack, cutc_tree, tokens);
-        construct_tree(stack, tree, tokens);
+        construct_tree(vm_context1, cutc_stack, cutc_tree, cutc_tokens);
+        construct_tree(vm_context2, stack, tree, tokens);
 
-//        get_languages_config(cutc_tree, cutc_tokens, from, to);
+        get_languages_config(cutc_tree, cutc_tokens, from, to);
     }
 }
 
