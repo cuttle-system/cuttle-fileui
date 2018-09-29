@@ -130,7 +130,8 @@ BOOST_FIXTURE_TEST_SUITE(compile_file_suite, compile_file_suite_fixture)
         A_tokenizer_cutc_file.close();
 
         std::ofstream A_tokenizer_file(A_tokenizer_path.string());
-        A_tokenizer_file << R"(normal_string "'" -> "'")";
+        A_tokenizer_file << "normal_string \"'\" -> \"'\"\n"
+                            "formatted_string \"\\\"\" -> \"\\\"\"";
         A_tokenizer_file.close();
 
         path B_tokenizer_cutc_path = tmp / "B.1" / "tokenizer" / "rules.cutc.cutc";
@@ -143,15 +144,16 @@ BOOST_FIXTURE_TEST_SUITE(compile_file_suite, compile_file_suite_fixture)
         B_tokenizer_cutc_file.close();
 
         std::ofstream B_tokenizer_file(B_tokenizer_path.string());
-        B_tokenizer_file << R"(normal_string "_" -> "_")";
+        B_tokenizer_file << "normal_string _ -> _\n"
+                            "formatted_string | -> |";
         B_tokenizer_file.close();
 
         std::ofstream cutc_file(cutc_path.string());
-        cutc_file << "'A'.1 to 'B'.1";
+        cutc_file << "A.1 to B.1";
         cutc_file.close();
 
         std::ofstream src_file(file_path.string());
-        src_file << "'foo' ''";
+        src_file << "'foo' '' \"\\n\"";
         src_file.close();
 
         state.search_path = {tmp};
@@ -161,7 +163,7 @@ BOOST_FIXTURE_TEST_SUITE(compile_file_suite, compile_file_suite_fixture)
         std::string output_file_src((std::istreambuf_iterator<char>(output_file)),
                                       std::istreambuf_iterator<char>());
 
-        BOOST_CHECK_EQUAL(output_file_src, "_foo_\n__");
+        BOOST_CHECK_EQUAL(output_file_src, "|foo|\n||\n|\\n|");
     }
 
 BOOST_AUTO_TEST_SUITE_END()

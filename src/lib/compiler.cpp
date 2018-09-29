@@ -178,16 +178,31 @@ void construct_tree(vm::context_t &context, std::deque<vm::value_t> &arg_stack, 
 void compile_without_generation(compile_state &state, const path &file_path, path compiled_file_path,
                                 call_tree_t &new_tree, values_t &values, language_t &from, language_t &to);
 
+void get_tokenizer_range_from_tree(const path &file_path, tree_src_element_t root_index,
+        const call_tree_t &tree, const values_t &values, tokenizer_range_map_t &range_map) {
+    auto index = tree.src[root_index][0];
+    if (values[index].type == value_type::func_name && values[index].value == "->") {
+        range_map[values[tree.src[index][0]].value].insert(values[tree.src[index][1]].value);
+    } else {
+        throw format_error("expected '->' symbol '" + values[root_index].value + "'", file_path);
+    }
+}
+
 void get_tokenizer_from_tree(const path &file_path, const call_tree_t &tree, const values_t &values, tokenizer_config_t &tokenizer) {
     for (auto root_index : tree.src.back()) {
         if (values[root_index].type == value_type::func_name) {
             if (values[root_index].value == "normal_string") {
-                auto index = tree.src[root_index][0];
-                if (values[index].type == value_type::func_name && values[index].value == "->") {
-                    tokenizer.normal_string[values[tree.src[index][0]].value].insert(values[tree.src[index][1]].value);
-                } else {
-                    throw format_error("expected '->' symbol '" + values[root_index].value + "'", file_path);
-                }
+                get_tokenizer_range_from_tree(file_path, root_index, tree, values, tokenizer.normal_string);
+            } else if (values[root_index].value == "formatted_string") {
+                get_tokenizer_range_from_tree(file_path, root_index, tree, values, tokenizer.formatted_string);
+            } else if (values[root_index].value == "comments") {
+                get_tokenizer_range_from_tree(file_path, root_index, tree, values, tokenizer.comments);
+            } else if (values[root_index].value == "macro_ps") {
+                get_tokenizer_range_from_tree(file_path, root_index, tree, values, tokenizer.macro_ps);
+            } else if (values[root_index].value == "macro_pf") {
+                get_tokenizer_range_from_tree(file_path, root_index, tree, values, tokenizer.macro_pf);
+            } else if (values[root_index].value == "macro_p") {
+                get_tokenizer_range_from_tree(file_path, root_index, tree, values, tokenizer.macro_p);
             } else {
                 throw format_error("undefined property '" + values[root_index].value + "'", file_path);
             }
