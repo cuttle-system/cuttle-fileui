@@ -131,7 +131,7 @@ token_t token_from_vm_value(vm::context_t &context, const vm::value_t &value) {
 tree_src_element_t construct_tree_inner(vm::context_t &context, const std::vector<vm::value_t> &call_array, call_tree_t &tree, tokens_t &tokens) {
     const std::string &function_name = *call_array[0].data.string;
     tree_src_element_t function_index = (tree_src_element_t) tokens.size(), child_index;
-    tokens.push_back({token_type::string, function_name});
+    tokens.push_back({token_type::atom, function_name});
     tree.src.push_back({});
 
     for (unsigned i = 1; i < call_array.size(); ++i) {
@@ -152,6 +152,29 @@ void construct_tree(vm::context_t &context, std::deque<vm::value_t> &arg_stack, 
     const std::vector<vm::value_t> &call_array = *arg_stack.begin()->data.array;
     auto i = construct_tree_inner(context, call_array, tree, tokens);
     tree.src.push_back({i});
+}
+
+void get_language_info(const language_t &lang,
+    context_t &context, tokenizer_config_t &tokenizer, generator_config_t &generator_config
+) {
+    if (lang.name == "cutc-tokenizer" && lang.version == 1) {
+        lang::get_parser_cutc_tokenizer(context);
+        lang::get_tokenizer_config(tokenizer);
+    } else if (lang.name == "cutvm" && lang.version == 1) {
+        lang::get_cutvm_context(context);
+        lang::get_cutvm_tokenizer_config(tokenizer);
+        lang::get_cutvm_generator_config(generator_config);
+    } else {
+        // TODO: search module...
+    }
+}
+
+void get_language_translator(const language_t &from, const language_t &to, translator_t &translator) {
+    if (to.name == "cutvm" && to.version == 1) {
+        lang::get_cutvm_translator(translator);
+    } else {
+        // TODO: search module...
+    }
 }
 
 void get_cached(compile_state &state, const path &file_path, const path &cutc_path, path compiled_file_path,
@@ -194,16 +217,11 @@ void get_cached(compile_state &state, const path &file_path, const path &cutc_pa
 
         context_t context;
         tokenizer_config_t tokenizer;
+        generator_config_t generator_config;
         initialize(context);
 
         get_languages_config(cutc_tree, cutc_tokens, from, to);
-
-        if (from.name == "cutc-tokenizer" && from.version == 1) {
-            lang::get_parser_cutc_tokenizer(context);
-            lang::get_tokenizer_config(tokenizer);
-        } else {
-            // TODO: search module...
-        }
+        get_language_info(from, context, tokenizer, generator_config);
 
         call_tree_t file_compiled_tree;
         values_t file_compiled_values;
@@ -239,7 +257,25 @@ void cuttle::fileui::compile_file(compile_state &state, const boost::filesystem:
 
     get_cached(state, file_path, cutc_path, compiled_file_path, from, to, tree, tokens);
 
-    // compilation process
+    context_t context;
+    tokenizer_config_t tokenizer_config;
+    generator_config_t generator_config;
+    translator_t translator;
+
+    initialize(context);
+    get_language_info(to, context, tokenizer_config, generator_config);
+    get_language_translator(from, to, translator);
+
+    values_t values;
+    call_tree_t new_tree;
+    translate(translator, tokens, tree, values, new_tree);
+
+    generator_state_t generator_state;
+    generate(tokenizer_config, generator_config, context, values, new_tree, generator_state);
+
+    std::ofstream output_file(output_file_path.string());
+    output_file << generator_state.output;
+    output_file.close();
 }
 
 void cuttle::fileui::compile_files(compile_state &state, const boost::filesystem::path &functions_path) {
