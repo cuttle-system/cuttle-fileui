@@ -1,6 +1,8 @@
 #define BOOST_TEST_DYN_LINK
 #include <boost/test/unit_test.hpp>
 #include <boost/filesystem.hpp>
+#include <chrono>
+#include <thread>
 #include "test_utils.hpp"
 #include "compiler.hpp"
 #include "module_duplicate_error.hpp"
@@ -8,6 +10,7 @@
 using namespace std;
 using namespace boost::filesystem;
 using namespace cuttle::fileui;
+using namespace cuttle;
 
 BOOST_AUTO_TEST_SUITE(search_module_suite)
 
@@ -46,7 +49,61 @@ BOOST_AUTO_TEST_SUITE(search_module_suite)
 
 BOOST_AUTO_TEST_SUITE_END()
 
-BOOST_AUTO_TEST_SUITE(compile_file_suite)
+struct compile_file_suite_fixture {
+    compile_state state = {{}, {}};
+};
+
+BOOST_FIXTURE_TEST_SUITE(compile_file_suite, compile_file_suite_fixture)
+
+    BOOST_AUTO_TEST_CASE(case1) {
+        path tmp = create_tmp();
+        path file_path = tmp / "foo.cutc";
+        path cutc_path = file_path.string() + ".cutc";
+        path compiled_file_path = file_path.string() + ".cutvm";
+        path compiled_cutc_path = cutc_path.string() + ".cutvm";
+        path output_file_path = tmp / "foo.cutvm";
+
+        std::ofstream cutc_file(cutc_path.string());
+        cutc_file << "'cutc-tokenizer'.1 to 'cutvm'.1";
+        cutc_file.close();
+
+        std::ofstream src_file(file_path.string());
+        src_file << R"(normal_string "'" -> "'")";
+        src_file.close();
+
+        state.search_path = {tmp};
+        compile_file(state, file_path, compiled_file_path);
+
+        std::ifstream compiled_cutc_file(compiled_cutc_path.string());
+        std::string compiled_cutc_src((std::istreambuf_iterator<char>(compiled_cutc_file)),
+                               std::istreambuf_iterator<char>());
+
+        BOOST_CHECK_EQUAL(compiled_cutc_src, "b s to\n"
+                                             "b s .\n"
+                                             "b s cutc-tokenizer\n"
+                                             "b i 1\n"
+                                             "c 3 0 array\n"
+                                             "b s .\n"
+                                             "b s cutvm\n"
+                                             "b i 1\n"
+                                             "c 3 0 array\n"
+                                             "c 3 0 array");
+
+        std::ifstream compiled_file(compiled_file_path.string());
+        std::string compiled_file_src((std::istreambuf_iterator<char>(compiled_file)),
+                                      std::istreambuf_iterator<char>());
+
+        BOOST_CHECK_EQUAL(compiled_file_src, "b s normal_string\n"
+                                             "b s ->\n"
+                                             "b s '\n"
+                                             "b s '\n"
+                                             "c 3 0 array\n"
+                                             "c 2 0 array");
+    }
+
+BOOST_AUTO_TEST_SUITE_END()
+
+BOOST_FIXTURE_TEST_SUITE(compile_file_cache_read_suite, compile_file_suite_fixture)
 
     BOOST_AUTO_TEST_CASE(case1) {
         path tmp = create_tmp();
@@ -59,39 +116,204 @@ BOOST_AUTO_TEST_SUITE(compile_file_suite)
         cutc_file << "'cutc-tokenizer'.1 to 'cutvm'.1";
         cutc_file.close();
 
+        std::ofstream compiled_cutc_file(compiled_cutc_path.string());
+        compiled_cutc_file << "b s to\n"
+                              "b s .\n"
+                              "b s cutc-tokenizer\n"
+                              "b i 1\n"
+                              "c 3 0 array\n"
+                              "b s .\n"
+                              "b s cutvm\n"
+                              "b i 1\n"
+                              "c 3 0 array\n"
+                              "c 3 0 array";
+        compiled_cutc_file.close();
+
         std::ofstream src_file(file_path.string());
         src_file << R"(normal_string "'" -> "'")";
         src_file.close();
 
-        list<path> search_path = {tmp};
-        compile_state state {search_path, {}};
+        std::ofstream compiled_file(compiled_file_path.string());
+        compiled_file << "b s normal_string\n"
+                         "b s ->\n"
+                         "b s '\n"
+                         "b s '\n"
+                         "c 3 0 array\n"
+                         "c 2 0 array";
+        compiled_file.close();
+
+        auto compiled_file_last_modified = last_write_time(compiled_file_path);
+        auto compiled_cutc_last_modified = last_write_time(compiled_cutc_path);
+
+        state.search_path = {tmp};
         compile_file(state, file_path, compiled_file_path);
 
-        std::ifstream compiled_cutc_file(compiled_cutc_path.string());
-        std::string compiled_cutc_src((std::istreambuf_iterator<char>(compiled_cutc_file)),
-                               std::istreambuf_iterator<char>());
+        BOOST_CHECK_EQUAL(compiled_file_last_modified, last_write_time(compiled_file_path));
+        BOOST_CHECK_EQUAL(compiled_cutc_last_modified, last_write_time(compiled_cutc_path));
+        // TODO
+    }
 
-        BOOST_CHECK_EQUAL(compiled_cutc_src, "b s to\n"
-                                             "b s .\n"
-                                             "b s cutc-tokenizer\n"
-                                             "b i 1\n"
-                                             "c 0 3 array\n"
-                                             "b s .\n"
-                                             "b s cutvm\n"
-                                             "b i 1\n"
-                                             "c 0 3 array\n"
-                                             "c 0 3 array");
+BOOST_AUTO_TEST_SUITE_END()
 
-        std::ifstream compiled_file(compiled_file_path.string());
-        std::string compiled_file_src((std::istreambuf_iterator<char>(compiled_file)),
-                                      std::istreambuf_iterator<char>());
+BOOST_FIXTURE_TEST_SUITE(compile_file_cache_compilation_suite, compile_file_suite_fixture)
 
-        BOOST_CHECK_EQUAL(compiled_file_src, "b s normal_string\n"
-                                             "b s ->\n"
-                                             "b s '\n"
-                                             "b s '\n"
-                                             "c 0 3 array\n"
-                                             "c 0 2 array");
+    BOOST_AUTO_TEST_CASE(cached_files_not_recompiled) {
+        path tmp = create_tmp();
+        path file_path = tmp / "foo.cutc";
+        path cutc_path = file_path.string() + ".cutc";
+        path compiled_file_path = file_path.string() + ".cutvm";
+        path compiled_cutc_path = cutc_path.string() + ".cutvm";
+
+        std::ofstream cutc_file(cutc_path.string());
+        cutc_file << "'cutc-tokenizer'.1 to 'cutvm'.1";
+        cutc_file.close();
+
+        std::this_thread::sleep_for(std::chrono::seconds(1));
+
+        std::ofstream compiled_cutc_file(compiled_cutc_path.string());
+        compiled_cutc_file << "b s to\n"
+                              "b s .\n"
+                              "b s cutc-tokenizer\n"
+                              "b i 1\n"
+                              "c 3 0 array\n"
+                              "b s .\n"
+                              "b s cutvm\n"
+                              "b i 1\n"
+                              "c 3 0 array\n"
+                              "c 3 0 array";
+        compiled_cutc_file.close();
+
+        std::ofstream src_file(file_path.string());
+        src_file << R"(normal_string "'" -> "'")";
+        src_file.close();
+
+        std::this_thread::sleep_for(std::chrono::seconds(1));
+
+        std::ofstream compiled_file(compiled_file_path.string());
+        compiled_file << "b s normal_string\n"
+                         "b s ->\n"
+                         "b s '\n"
+                         "b s '\n"
+                         "c 3 0 array\n"
+                         "c 2 0 array";
+        compiled_file.close();
+
+        std::this_thread::sleep_for(std::chrono::seconds(1));
+
+        auto compiled_file_last_modified = last_write_time(compiled_file_path);
+        auto compiled_cutc_last_modified = last_write_time(compiled_cutc_path);
+
+        state.search_path = {tmp};
+        compile_file(state, file_path, compiled_file_path);
+
+        BOOST_CHECK_EQUAL(compiled_file_last_modified, last_write_time(compiled_file_path));
+        BOOST_CHECK_EQUAL(compiled_cutc_last_modified, last_write_time(compiled_cutc_path));
+    }
+
+    BOOST_AUTO_TEST_CASE(cached_files_recompiled1) {
+        path tmp = create_tmp();
+        path file_path = tmp / "foo.cutc";
+        path cutc_path = file_path.string() + ".cutc";
+        path compiled_file_path = file_path.string() + ".cutvm";
+        path compiled_cutc_path = cutc_path.string() + ".cutvm";
+
+        std::ofstream cutc_file(cutc_path.string());
+        cutc_file << "'cutc-tokenizer'.1 to 'cutvm'.1";
+        cutc_file.close();
+
+        std::this_thread::sleep_for(std::chrono::seconds(1));
+
+        std::ofstream compiled_cutc_file(compiled_cutc_path.string());
+        compiled_cutc_file << "b s to\n"
+                              "b s .\n"
+                              "b s cutc-tokenizer\n"
+                              "b i 1\n"
+                              "c 3 0 array\n"
+                              "b s .\n"
+                              "b s cutvm\n"
+                              "b i 1\n"
+                              "c 3 0 array\n"
+                              "c 3 0 array";
+        compiled_cutc_file.close();
+
+        std::ofstream compiled_file(compiled_file_path.string());
+        compiled_file << "b s normal_string\n"
+                         "b s ->\n"
+                         "b s '\n"
+                         "b s '\n"
+                         "c 3 0 array\n"
+                         "c 2 0 array";
+        compiled_file.close();
+
+        std::this_thread::sleep_for(std::chrono::seconds(1));
+
+        std::ofstream src_file(file_path.string());
+        src_file << R"(normal_string "'" -> "'")";
+        src_file.close();
+
+        std::this_thread::sleep_for(std::chrono::seconds(1));
+
+        auto compiled_file_last_modified = last_write_time(compiled_file_path);
+        auto compiled_cutc_last_modified = last_write_time(compiled_cutc_path);
+
+        state.search_path = {tmp};
+        compile_file(state, file_path, compiled_file_path);
+
+        BOOST_CHECK_LT(compiled_file_last_modified, last_write_time(compiled_file_path));
+        BOOST_CHECK_LT(compiled_cutc_last_modified, last_write_time(compiled_cutc_path));
+    }
+
+    BOOST_AUTO_TEST_CASE(cached_files_recompiled2) {
+        path tmp = create_tmp();
+        path file_path = tmp / "foo.cutc";
+        path cutc_path = file_path.string() + ".cutc";
+        path compiled_file_path = file_path.string() + ".cutvm";
+        path compiled_cutc_path = cutc_path.string() + ".cutvm";
+
+        std::ofstream compiled_cutc_file(compiled_cutc_path.string());
+        compiled_cutc_file << "b s to\n"
+                              "b s .\n"
+                              "b s cutc-tokenizer\n"
+                              "b i 1\n"
+                              "c 3 0 array\n"
+                              "b s .\n"
+                              "b s cutvm\n"
+                              "b i 1\n"
+                              "c 3 0 array\n"
+                              "c 3 0 array";
+        compiled_cutc_file.close();
+
+        std::this_thread::sleep_for(std::chrono::seconds(1));
+
+        std::ofstream cutc_file(cutc_path.string());
+        cutc_file << "'cutc-tokenizer'.1 to 'cutvm'.1";
+        cutc_file.close();
+
+        std::ofstream src_file(file_path.string());
+        src_file << R"(normal_string "'" -> "'")";
+        src_file.close();
+
+        std::this_thread::sleep_for(std::chrono::seconds(1));
+
+        std::ofstream compiled_file(compiled_file_path.string());
+        compiled_file << "b s normal_string\n"
+                         "b s ->\n"
+                         "b s '\n"
+                         "b s '\n"
+                         "c 3 0 array\n"
+                         "c 2 0 array";
+        compiled_file.close();
+
+        std::this_thread::sleep_for(std::chrono::seconds(1));
+
+        auto compiled_file_last_modified = last_write_time(compiled_file_path);
+        auto compiled_cutc_last_modified = last_write_time(compiled_cutc_path);
+
+        state.search_path = {tmp};
+        compile_file(state, file_path, compiled_file_path);
+
+        BOOST_CHECK_LT(compiled_file_last_modified, last_write_time(compiled_file_path));
+        BOOST_CHECK_LT(compiled_cutc_last_modified, last_write_time(compiled_cutc_path));
     }
 
 BOOST_AUTO_TEST_SUITE_END()

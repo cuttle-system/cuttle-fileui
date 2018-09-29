@@ -3,6 +3,7 @@
 #include <list>
 #include <boost/filesystem.hpp>
 #include "language.hpp"
+#include "vm_context.hpp"
 
 namespace cuttle {
     namespace fileui {

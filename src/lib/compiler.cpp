@@ -1,5 +1,7 @@
 #include <string>
 #include <boost/filesystem.hpp>
+#include "vm_value.hpp"
+#include "interpreter.hpp"
 #include "cutvm_context.hpp"
 #include "cutvm_generator.hpp"
 #include "cutvm_tokenizer.hpp"
@@ -17,6 +19,7 @@
 #include "incorrect_module_structure_error.hpp"
 #include "lang_tokenizer.hpp"
 #include "tokenizer.hpp"
+#include "std.hpp"
 
 namespace fs = boost::filesystem;
 
@@ -93,7 +96,26 @@ void cache_file(compile_state &state, const path &file_path, const path &compile
     std::ofstream compiled_config_file(compiled_file_path.string());
     compiled_config_file << generator_state.output;
     compiled_config_file.close();
+}
 
+void get_languages_config(const call_tree_t &tree, const tokens_t &tokens, language_t &from, language_t &to) {
+    from.name = tokens[tree.src[tree.src[tree.src.back()[0]][0]][0]].value;
+    from.version = std::stoi(tokens[tree.src[tree.src[tree.src.back()[0]][0]][1]].value);
+
+    to.name = tokens[tree.src[tree.src[tree.src.back()[0]][1]][0]].value;
+    to.version = std::stoi(tokens[tree.src[tree.src[tree.src.back()[0]][1]][1]].value);
+}
+
+void interpret_file(vm::context_t &context, const path &file_path, std::deque<vm::value_t> &arg_stack) {
+    std::ifstream config_file(file_path.string());
+    while (!config_file.eof()) {
+        vm::eval(config_file, context, arg_stack);
+    }
+    config_file.close();
+}
+
+void construct_tree(std::deque<vm::value_t> &arg_stack, call_tree_t &tree, tokens_t &tokens) {
+    int size = arg_stack.size();
 }
 
 void get_cached(compile_state &state, const path &file_path, const path &cutc_path, path compiled_file_path,
@@ -102,6 +124,9 @@ void get_cached(compile_state &state, const path &file_path, const path &cutc_pa
     if (compiled_file_path.empty()) compiled_file_path = get_compiled_file_path(file_path);
 
     path compiled_cutc_path = compiled_file_path.parent_path() / path(cutc_path.filename().string() + ".cutvm");
+
+    call_tree_t cutc_tree;
+    tokens_t cutc_tokens;
 
     if (!exists(compiled_file_path) || !exists(compiled_cutc_path)
         || last_write_time(compiled_file_path) < last_write_time(file_path)
@@ -117,9 +142,6 @@ void get_cached(compile_state &state, const path &file_path, const path &cutc_pa
         lang::get_cutvm_generator_config(cutvm_generator);
         lang::get_cutvm_tokenizer_config(cutvm_tokenizer);
         lang::get_cutvm_translator(cutvm_translator);
-
-        call_tree_t cutc_tree;
-        tokens_t cutc_tokens;
 
         context_t cutc_context;
         tokenizer_config_t cutc_tokenizer;
@@ -138,11 +160,7 @@ void get_cached(compile_state &state, const path &file_path, const path &cutc_pa
         tokenizer_config_t tokenizer;
         initialize(context);
 
-        from.name = cutc_tokens[cutc_tree.src[cutc_tree.src[cutc_tree.src.back()[0]][0]][0]].value;
-        from.version = std::stoi(cutc_tokens[cutc_tree.src[cutc_tree.src[cutc_tree.src.back()[0]][0]][1]].value);
-
-        to.name = cutc_tokens[cutc_tree.src[cutc_tree.src[cutc_tree.src.back()[0]][1]][0]].value;
-        to.version = std::stoi(cutc_tokens[cutc_tree.src[cutc_tree.src[cutc_tree.src.back()[0]][1]][1]].value);
+        get_languages_config(cutc_tree, cutc_tokens, from, to);
 
         if (from.name == "cutc-tokenizer" && from.version == 1) {
             lang::get_parser_cutc_tokenizer(context);
@@ -158,12 +176,24 @@ void get_cached(compile_state &state, const path &file_path, const path &cutc_pa
                 cutvm_context, cutvm_tokenizer, cutvm_translator, cutvm_generator,
                 tree, tokens, file_compiled_tree, file_compiled_values);
     } else {
-        // TODO: read from cache
+        std::deque<vm::value_t> cutc_stack, stack;
+        vm::context_t vm_context1, vm_context2;
+
+        vm::populate(vm_context1);
+        vm::populate(vm_context2);
+
+        interpret_file(vm_context1, compiled_cutc_path, cutc_stack);
+        interpret_file(vm_context2, compiled_file_path, stack);
+
+        construct_tree(cutc_stack, cutc_tree, tokens);
+        construct_tree(stack, tree, tokens);
+
+//        get_languages_config(cutc_tree, cutc_tokens, from, to);
     }
 }
 
-void cuttle::fileui::compile_file(compile_state &state, const path &file_path,
-                                  const path &compiled_file_path) {
+void cuttle::fileui::compile_file(compile_state &state, const boost::filesystem::path &file_path,
+                                  const boost::filesystem::path &compiled_file_path, const boost::filesystem::path &output_file_path) {
     path cutc_path = file_path.string() + ".cutc";
 
     call_tree_t tree;
