@@ -6,6 +6,7 @@
 #include "test_utils.hpp"
 #include "compiler.hpp"
 #include "module_duplicate_error.hpp"
+#include "fileui_module.hpp"
 
 using namespace std;
 using namespace boost::filesystem;
