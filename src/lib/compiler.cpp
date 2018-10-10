@@ -23,6 +23,11 @@
 #include "std.hpp"
 #include "dictionary_methods.hpp"
 #include "format_error.hpp"
+#include "std.hpp"
+#include "lang_parser_cutvm_functions.hpp"
+#include "lang_parser_cutc_parser.hpp"
+#include "file_not_found_error.hpp"
+#include "lang_cutvm_translator.hpp"
 
 namespace fs = boost::filesystem;
 
@@ -247,37 +252,108 @@ void get_tokenizer_from_tree(const path &file_path, const call_tree_t &tree, con
     }
 }
 
+void init_vm_context(vm::context_t &vm_context,
+        const std::string &array_var_name, vm::value_t array,
+        const std::string &object_var_name, vm::object_t context) {
+    vm::populate(vm_context);
+
+    auto parser_context = vm::value_t{{vm::type_id::object},
+                                      {context}};
+    vm::add(vm_context, array_var_name, array);
+    vm::add(vm_context, object_var_name, parser_context);
+    lang::register_lang_parser_cutvm_functions(vm_context);
+}
+
+void interpret_context(const path &file_path, context_t &context) {
+    std::deque<vm::value_t> arg_stack;
+    vm::context_t vm_context;
+
+    auto parser_config_array = PARSER_CONTEXT_CONFIG_ARRAY_DEFAULT_VALUES;
+    init_vm_context(vm_context,
+            lang::PARSER_CONTEXT_CONFIG_ARRAY_VAR_NAME, parser_config_array,
+            lang::PARSER_CONTEXT_VAR_NAME, (vm::object_t) &context);
+
+    std::ifstream config_file(file_path.string());
+
+    while (!config_file.eof()) {
+        vm::eval(config_file, vm_context, arg_stack);
+    }
+    config_file.close();
+
+    vm::value_t ret;
+    vm::call(vm_context, "append_to_context", {}, 0, ret);
+}
+
+void get_context_from_module(compile_state &state, const path &module_path, context_t &context) {
+    path functions_path = module_path / "parser" / "functions";
+
+    if (!exists(functions_path)) {
+        return;
+    }
+
+    for (const auto &file_path_it : directory_iterator(functions_path)) {
+        const path &file_path = file_path_it.path();
+        const path &rules_path = file_path / "rules.cutl";
+        const path &compiled_file_path = get_compiled_file_path(rules_path);
+        const path &output_file_path = get_output_file_path(rules_path);
+        call_tree_t context_tree;
+        values_t context_values;
+        compile_file(state, rules_path);
+        interpret_context(output_file_path, context);
+    }
+}
+
+void get_tokenizer_from_module(compile_state &state, const path &module_path, tokenizer_config_t &tokenizer) {
+    language_t from, to;
+    call_tree_t tokenizer_tree;
+    values_t tokenizer_values;
+    path tokenizer_file_path = module_path / "parser" / "tokenizer" / "rules.cutl";
+
+    if (exists(tokenizer_file_path)) {
+        compile_without_generation(state, tokenizer_file_path, "",
+                                   tokenizer_tree, tokenizer_values, from, to);
+        get_tokenizer_from_tree(tokenizer_file_path, tokenizer_tree, tokenizer_values, tokenizer);
+    } else {
+        lang::get_tokenizer_config(tokenizer);
+    }
+}
+
+void get_generator_from_module(compile_state &state, const path &module_path, generator_config_t &generator_config) {
+
+}
+
 void get_language_info(compile_state &state, const language_t &lang,
     context_t &context, tokenizer_config_t &tokenizer, generator_config_t &generator_config
 ) {
     if (lang.name == "cutc-tokenizer" && lang.version == 1) {
         lang::get_parser_cutc_tokenizer(context);
         lang::get_tokenizer_config(tokenizer);
-    } else if (lang.name == "cutvm" && lang.version == 1) {
+    } else if (lang.name == "cutc-parser" && lang.version == 1) {
+        lang::get_parser_cutc_parser(context);
+        lang::get_tokenizer_config(tokenizer);
+    } else if ((lang.name == "cutvm" || lang.name == "cutvm-cache") && lang.version == 1) {
         lang::get_cutvm_context(context);
         lang::get_cutvm_tokenizer_config(tokenizer);
         lang::get_cutvm_generator_config(generator_config);
     } else {
-        language_t from, to;
         auto module_path = search_module(state, lang.name + "." + std::to_string(lang.version));
-
-        call_tree_t tokenizer_tree;
-        values_t tokenizer_values;
-        path tokenizer_file_path = module_path / "tokenizer" / "rules.cutc";
-        compile_without_generation(state, tokenizer_file_path, "",
-                tokenizer_tree, tokenizer_values, from, to);
-        get_tokenizer_from_tree(tokenizer_file_path, tokenizer_tree, tokenizer_values, tokenizer);
+        get_tokenizer_from_module(state, module_path, tokenizer);
+        get_context_from_module(state, module_path, context);
+        get_generator_from_module(state, module_path, generator_config);
     }
 }
 
 void get_language_translator(compile_state &state, const language_t &from, const language_t &to, translator_t &translator) {
-    if (to.name == "cutvm" && to.version == 1) {
+    if (to.name == "cutvm-cache" && to.version == 1) {
         lang::get_cutvm_translator(translator);
+    } else if (from.name == "cutc-parser" && from.version == 1 && to.name == "cutvm" && to.version == 1) {
+        lang::get_lang_cutvm_translator(translator);
     } else if (to.name == TRANSLATOR_ANY_NAME && to.version == TRANSLATOR_ANY_VERSION) {
         initialize(translator.dictionary);
         translator.to = to;
         translator.from = from;
     } else {
+        initialize(translator.dictionary);
         // TODO: search module...
     }
 }
@@ -291,6 +367,10 @@ void get_cached(compile_state &state, const path &file_path, const path &cutc_pa
 
     call_tree_t cutc_tree;
     tokens_t cutc_tokens;
+
+    if (!exists(cutc_path)) {
+        throw file_not_found_error(cutc_path);
+    }
 
     if (!exists(compiled_file_path) || !exists(compiled_cutc_path)
         || last_write_time(compiled_file_path) < last_write_time(file_path)
@@ -357,6 +437,10 @@ void compile_without_generation(compile_state &state, const path &file_path, pat
 
     call_tree_t tree;
     tokens_t tokens;
+
+    if (!exists(file_path)) {
+        throw file_not_found_error(file_path);
+    }
 
     get_cached(state, file_path, cutc_path, compiled_file_path, from, to, tree, tokens);
 
