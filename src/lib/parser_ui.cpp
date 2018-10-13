@@ -18,7 +18,7 @@ void fileui::interpret_context(const fs::path &file_path, context_t &context) {
 
     auto parser_config_array = PARSER_CONTEXT_CONFIG_ARRAY_DEFAULT_VALUES;
     fileui::config_init_vm_context(vm_context,
-                    PARSER_CONTEXT_CONFIG_ARRAY_VAR_NAME, parser_config_array,
+                    PARSER_CONTEXT_ARRAY_VAR_NAME, parser_config_array,
                     PARSER_CONTEXT_VAR_NAME, (vm::object_t) &context);
 
     std::ifstream config_file(file_path.string());

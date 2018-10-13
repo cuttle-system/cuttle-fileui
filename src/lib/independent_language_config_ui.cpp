@@ -1,5 +1,5 @@
 #include "independent_language_config_ui.hpp"
-#include "lang_parser_cutc_tokenizer.hpp"
+#include "lang_tokenizer_cutc_parser.hpp"
 #include "lang_tokenizer.hpp"
 #include "lang_parser_cutc_parser.hpp"
 #include "cutvm_context.hpp"
@@ -17,7 +17,7 @@ void fileui::get_independent_language_config(compile_state &state, const languag
                                              generator_config_t &generator_config
 ) {
     if (lang.name == "cutc-tokenizer" && lang.version == 1) {
-        lang::get_parser_cutc_tokenizer(context);
+        lang::get_tokenizer_cutc_parser(context);
         lang::get_tokenizer_config(tokenizer);
     } else if (lang.name == "cutc-parser" && lang.version == 1) {
         lang::get_parser_cutc_parser(context);
