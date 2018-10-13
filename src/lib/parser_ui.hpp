@@ -10,6 +10,5 @@ namespace cuttle {
 
         void
         get_context_from_module(compile_state &state, const boost::filesystem::path &module_path, context_t &context);
-
     }
 }

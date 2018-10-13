@@ -1,5 +1,4 @@
 #include "parser_ui.hpp"
-#include "config_vm_interface.hpp"
 #include "interpreter.hpp"
 #include "lang_parser_cutvm_functions.hpp"
 #include "vm_context_methods.hpp"
@@ -7,26 +6,34 @@
 #include "call_tree.hpp"
 #include "value.hpp"
 #include "compiler.hpp"
+#include "std.hpp"
+#include "file_interpreter.hpp"
 
 using namespace cuttle;
-
 namespace fs = boost::filesystem;
+
+void config_init_vm_context(vm::context_t &vm_context,
+                            const std::string &array_var_name, vm::value_t array,
+                            const std::string &object_var_name, vm::object_t context) {
+    vm::populate(vm_context);
+
+    auto parser_context = vm::value_t{{vm::type_id::object},
+                                      {context}};
+    vm::add(vm_context, array_var_name, array);
+    vm::add(vm_context, object_var_name, parser_context);
+    lang::register_lang_parser_cutvm_functions(vm_context);
+}
 
 void fileui::interpret_context(const fs::path &file_path, context_t &context) {
     std::deque<vm::value_t> arg_stack;
     vm::context_t vm_context;
 
     auto parser_config_array = PARSER_CONTEXT_CONFIG_ARRAY_DEFAULT_VALUES;
-    fileui::config_init_vm_context(vm_context,
-                    PARSER_CONTEXT_ARRAY_VAR_NAME, parser_config_array,
-                    PARSER_CONTEXT_VAR_NAME, (vm::object_t) &context);
+    config_init_vm_context(vm_context,
+                           PARSER_CONTEXT_ARRAY_VAR_NAME, parser_config_array,
+                           PARSER_CONTEXT_VAR_NAME, (vm::object_t) &context);
 
-    std::ifstream config_file(file_path.string());
-
-    while (!config_file.eof()) {
-        vm::eval(config_file, vm_context, arg_stack);
-    }
-    config_file.close();
+    interpret_file(vm_context, file_path, arg_stack);
 
     vm::value_t ret;
     vm::call(vm_context, "append_to_context", {}, 0, ret);

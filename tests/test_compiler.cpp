@@ -96,8 +96,8 @@ BOOST_FIXTURE_TEST_SUITE(compile_file_suite, compile_file_suite_fixture)
 
         BOOST_CHECK_EQUAL(compiled_file_src, "b s normal_string\n"
                                              "b s ->\n"
-                                             "b s \\'\n"
-                                             "b s \\'\n"
+                                             "b s '\n"
+                                             "b s '\n"
                                              "c 3 0 array\n"
                                              "c 2 0 array");
 
@@ -107,8 +107,8 @@ BOOST_FIXTURE_TEST_SUITE(compile_file_suite, compile_file_suite_fixture)
 
         BOOST_CHECK_EQUAL(output_file_src, "b s normal_string\n"
                                            "b s ->\n"
-                                           "b s \\'\n"
-                                           "b s \\'\n"
+                                           "b s '\n"
+                                           "b s '\n"
                                            "c 3 0 array\n"
                                            "c 2 0 array");
     }
@@ -127,7 +127,7 @@ BOOST_FIXTURE_TEST_SUITE(compile_file_suite, compile_file_suite_fixture)
         create_directories(tmp / "A.1" / "parser" / "tokenizer");
 
         std::ofstream A_tokenizer_cutc_file(A_tokenizer_cutc_path.string());
-        A_tokenizer_cutc_file << "just 'cutc-tokenizer'.1";
+        A_tokenizer_cutc_file << "'cutc-tokenizer'.1 to 'cutvm'.1";
         A_tokenizer_cutc_file.close();
 
         std::ofstream A_tokenizer_file(A_tokenizer_path.string());
@@ -141,12 +141,12 @@ BOOST_FIXTURE_TEST_SUITE(compile_file_suite, compile_file_suite_fixture)
         create_directories(tmp / "B.1" / "parser" / "tokenizer");
 
         std::ofstream B_tokenizer_cutc_file(B_tokenizer_cutc_path.string());
-        B_tokenizer_cutc_file << "just 'cutc-tokenizer'.1";
+        B_tokenizer_cutc_file << "'cutc-tokenizer'.1 to 'cutvm'.1";
         B_tokenizer_cutc_file.close();
 
         std::ofstream B_tokenizer_file(B_tokenizer_path.string());
-        B_tokenizer_file << "normal_string _ -> _\n"
-                            "formatted_string | -> |";
+        B_tokenizer_file << "normal_string '_' -> '_'\n"
+                            "formatted_string '|' -> '|'";
         B_tokenizer_file.close();
 
         std::ofstream cutc_file(cutc_path.string());
@@ -346,8 +346,8 @@ BOOST_FIXTURE_TEST_SUITE(compile_file_cache_read_suite, compile_file_suite_fixtu
 
         BOOST_CHECK_EQUAL(output_file_src, "b s normal_string\n"
                                              "b s ->\n"
-                                             "b s \\'\n"
-                                             "b s \\'\n"
+                                             "b s '\n"
+                                             "b s '\n"
                                              "c 3 0 array\n"
                                              "c 2 0 array");
     }
