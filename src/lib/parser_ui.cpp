@@ -39,7 +39,7 @@ void fileui::interpret_context(const fs::path &file_path, context_t &context) {
     vm::call(vm_context, "append_to_context", {}, 0, ret);
 }
 
-void fileui::get_context_from_module(fileui::compile_state &state, const fs::path &module_path, context_t &context) {
+void fileui::get_context_from_module(fileui::compile_state_t &state, const fs::path &module_path, context_t &context) {
     fs::path functions_path = module_path / "parser" / "functions";
 
     if (!exists(functions_path)) {

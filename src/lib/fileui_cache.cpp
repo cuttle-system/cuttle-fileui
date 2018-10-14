@@ -20,7 +20,7 @@ using namespace cuttle::fileui;
 
 namespace fs = boost::filesystem;
 
-void cache_file(compile_state &state, const fs::path &file_path, const fs::path &compiled_file_path,
+void cache_file(compile_state_t &state, const fs::path &file_path, const fs::path &compiled_file_path,
                 context_t &context, const tokenizer_config_t &tokenizer,
                 context_t &cutvm_context, const tokenizer_config_t &cutvm_tokenizer,
                 translator_t &cutvm_translator, generator_config_t &cutvm_generator,
@@ -98,7 +98,7 @@ void construct_tree(vm::context_t &context, std::deque<vm::value_t> &arg_stack, 
     tree.src.push_back({i});
 }
 
-void fileui::get_cached(compile_state &state, const fs::path &file_path, const fs::path &cutc_path, fs::path& compiled_file_path,
+void fileui::get_cached(compile_state_t &state, const fs::path &file_path, const fs::path &cutc_path, fs::path& compiled_file_path,
                 language_t &from, language_t &to, call_tree_t &tree, tokens_t &tokens
 ) {
     if (compiled_file_path.empty()) compiled_file_path = get_compiled_file_path(file_path);

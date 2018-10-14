@@ -34,7 +34,7 @@ void fileui::interpret_tokenizer_config(const boost::filesystem::path &file_path
 }
 
 void
-fileui::get_tokenizer_from_module(compile_state &state, const fs::path &module_path, tokenizer_config_t &tokenizer) {
+fileui::get_tokenizer_from_module(compile_state_t &state, const fs::path &module_path, tokenizer_config_t &tokenizer) {
     fs::path tokenizer_file_path = module_path / "parser" / "tokenizer" / "rules.cutl";
     fs::path output_tokenizer_file_path = get_output_file_path(tokenizer_file_path);
 

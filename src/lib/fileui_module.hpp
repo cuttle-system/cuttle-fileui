@@ -15,7 +15,7 @@ namespace cuttle {
         boost::filesystem::path get_output_module_path(const boost::filesystem::path &module_path);
 
         boost::filesystem::path search_module(
-                const compile_state &state,
+                const compile_state_t &state,
                 const std::string &module_name);
     }
 }

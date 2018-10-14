@@ -16,7 +16,7 @@ using namespace cuttle;
 
 namespace fs = boost::filesystem;
 
-void fileui::compile_without_generation(compile_state &state, const fs::path &file_path, fs::path compiled_file_path,
+void fileui::compile_without_generation(compile_state_t &state, const fs::path &file_path, fs::path compiled_file_path,
                                 call_tree_t &new_tree, values_t &values, language_t &from, language_t &to) {
     fs::path cutc_path = file_path.string() + ".cutc";
 
@@ -34,7 +34,7 @@ void fileui::compile_without_generation(compile_state &state, const fs::path &fi
     translate(translator, tokens, tree, values, new_tree);
 }
 
-void fileui::compile_file(compile_state &state, const fs::path &file_path,
+void fileui::compile_file(compile_state_t &state, const fs::path &file_path,
                                   const fs::path &compiled_file_path, fs::path output_file_path) {
     if (output_file_path.empty()) output_file_path = get_output_file_path(file_path);
 
@@ -66,7 +66,7 @@ void fileui::compile_file(compile_state &state, const fs::path &file_path,
     output_file.close();
 }
 
-void fileui::compile_files(compile_state &state, const fs::path &functions_path) {
+void fileui::compile_files(compile_state_t &state, const fs::path &functions_path) {
     for (const auto& file_path_it : fs::recursive_directory_iterator(functions_path)) {
         const fs::path& file_path = file_path_it.path();
         compile_file(state, file_path);

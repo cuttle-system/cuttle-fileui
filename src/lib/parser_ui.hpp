@@ -9,6 +9,6 @@ namespace cuttle {
         void interpret_context(const boost::filesystem::path &file_path, context_t &context);
 
         void
-        get_context_from_module(compile_state &state, const boost::filesystem::path &module_path, context_t &context);
+        get_context_from_module(compile_state_t &state, const boost::filesystem::path &module_path, context_t &context);
     }
 }

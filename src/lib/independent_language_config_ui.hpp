@@ -8,7 +8,7 @@
 
 namespace cuttle {
     namespace fileui {
-        void get_independent_language_config(compile_state &state, const language_t &lang,
+        void get_independent_language_config(compile_state_t &state, const language_t &lang,
                                              context_t &context, tokenizer_config_t &tokenizer,
                                              generator_config_t &generator_config
         );

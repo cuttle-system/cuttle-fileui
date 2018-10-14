@@ -6,7 +6,7 @@
 
 namespace cuttle {
     namespace fileui {
-        void get_generator_from_module(compile_state &state, const boost::filesystem::path &module_path,
+        void get_generator_from_module(compile_state_t &state, const boost::filesystem::path &module_path,
                                        generator_config_t &generator_config);
     }
 }

@@ -83,7 +83,7 @@ int main(int argc, char *argv[]) {
     std::list<boost::filesystem::path> search_path;
     construct_search_path(c_module_path, search_path);
 
-    cuttle::fileui::compile_state state {search_path};
+    cuttle::fileui::compile_state_t state {search_path};
     auto module_path = cuttle::fileui::compile_module(c_module_name, state);
     std::cout << SUCCESS_MESSAGE;
 }

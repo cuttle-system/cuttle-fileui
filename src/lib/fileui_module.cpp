@@ -27,7 +27,7 @@ fs::path fileui::get_output_module_path(const fs::path &module_path) {
     return module_path.parent_path() / (module_name + CUTTLE_FILEUI_OUTPUT_PATH_POSTFIX);
 }
 
-fs::path fileui::search_module(const compile_state &state, const std::string &module_name) {
+fs::path fileui::search_module(const compile_state_t &state, const std::string &module_name) {
     bool found = false;
     fs::path found_path;
     for (const auto& path : state.search_path) {
