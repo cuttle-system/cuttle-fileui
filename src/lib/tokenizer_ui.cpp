@@ -44,4 +44,8 @@ fileui::get_tokenizer_from_module(compile_state_t &state, const fs::path &module
     } else {
         lang::get_tokenizer_config(tokenizer);
     }
+    if (tokenizer.macro_p.empty()) tokenizer.macro_p["0p"].insert("0");
+    if (tokenizer.macro_pf.empty()) tokenizer.macro_pf["0pf"].insert("0");
+    if (tokenizer.macro_ps.empty()) tokenizer.macro_ps["0ps"].insert("0");
+    if (tokenizer.macro_if.empty()) tokenizer.macro_if.insert("0if");
 }

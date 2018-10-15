@@ -126,6 +126,10 @@ BOOST_FIXTURE_TEST_SUITE(compile_file_suite, compile_file_suite_fixture)
 
         create_directories(tmp / "A.1" / "parser" / "tokenizer");
 
+        std::ofstream A_cutroot((tmp / "A.1" / ".cutroot").string());
+        A_cutroot << "";
+        A_cutroot.close();
+
         std::ofstream A_tokenizer_cutc_file(A_tokenizer_cutc_path.string());
         A_tokenizer_cutc_file << "'cutc-tokenizer'.1 to 'cutvm'.1";
         A_tokenizer_cutc_file.close();
@@ -139,6 +143,11 @@ BOOST_FIXTURE_TEST_SUITE(compile_file_suite, compile_file_suite_fixture)
         path B_tokenizer_path = tmp / "B.1" / "parser" / "tokenizer" / "rules.cutl";
 
         create_directories(tmp / "B.1" / "parser" / "tokenizer");
+
+        std::ofstream B_cutroot((tmp / "B.1" / ".cutroot").string());
+        B_cutroot << "";
+        B_cutroot.close();
+
 
         std::ofstream B_tokenizer_cutc_file(B_tokenizer_cutc_path.string());
         B_tokenizer_cutc_file << "'cutc-tokenizer'.1 to 'cutvm'.1";
@@ -360,7 +369,7 @@ BOOST_FIXTURE_TEST_SUITE(compile_file_suite, compile_file_suite_fixture)
 
         std::ofstream B_parser_foo_file((B_parser_foo_path / "rules.cutl").string());
         B_parser_foo_file << "name 'foo'\n"
-                             "type infix\n"
+                             "type prefix\n"
                              "args_number 2\n"
                              "priority_after start_func_id";
         B_parser_foo_file.close();
@@ -379,19 +388,40 @@ BOOST_FIXTURE_TEST_SUITE(compile_file_suite, compile_file_suite_fixture)
                               "priority_after func_id 'foo'";
         B_parser_plus_file.close();
 
-        auto B_parser_factorial_path = B_parser_path / "functions" / "3_factorial";
-        create_directories(B_parser_factorial_path);
+        auto B_parser_plus_plus_path = B_parser_path / "functions" / "3_plus_plus";
+        create_directories(B_parser_plus_plus_path);
 
-        std::ofstream B_parser_factorial_cutc_file((B_parser_factorial_path / "rules.cutl.cutc").string());
-        B_parser_factorial_cutc_file << "'cutc-parser'.1 to 'cutvm'.1";
-        B_parser_factorial_cutc_file.close();
+        std::ofstream B_parser_plus_plus_cutc_file((B_parser_plus_plus_path / "rules.cutl.cutc").string());
+        B_parser_plus_plus_cutc_file << "'cutc-parser'.1 to 'cutvm'.1";
+        B_parser_plus_plus_cutc_file.close();
 
-        std::ofstream B_parser_factorial_file((B_parser_factorial_path / "rules.cutl").string());
-        B_parser_factorial_file << "name '!'\n"
+        std::ofstream B_parser_plus_plus_file((B_parser_plus_plus_path / "rules.cutl").string());
+        B_parser_plus_plus_file << "name '++'\n"
                                    "type prefix\n"
                                    "args_number 1\n"
-                                   "priority_after func_id 'foo'";
-        B_parser_factorial_file.close();
+                                   "priority_after start_func_id";
+        B_parser_plus_plus_file.close();
+
+        path A_B_translator_path = tmp / "A.1" / "translators" / "B.1";
+
+        auto A_B_translator_bar_path = A_B_translator_path / "functions" / "1_bar";
+        create_directories(A_B_translator_bar_path);
+
+        std::ofstream A_B_translator_bar_pattern_cutc_file((A_B_translator_bar_path / "pattern.A.cutc").string());
+        A_B_translator_bar_pattern_cutc_file << "just 'A'.1";
+        A_B_translator_bar_pattern_cutc_file.close();
+
+        std::ofstream A_B_translator_bar_pattern_file((A_B_translator_bar_path / "pattern.A").string());
+        A_B_translator_bar_pattern_file << "0pf_func0 foo 0p_a0 !";
+        A_B_translator_bar_pattern_file.close();
+
+        std::ofstream A_B_translator_bar_output_cutc_file((A_B_translator_bar_path / "output.B.cutc").string());
+        A_B_translator_bar_output_cutc_file << "just 'B'.1";
+        A_B_translator_bar_output_cutc_file.close();
+
+        std::ofstream A_B_translator_bar_output_file((A_B_translator_bar_path / "output.B").string());
+        A_B_translator_bar_output_file << "++ foo 0p_a 0pf_func0";
+        A_B_translator_bar_output_file.close();
 
         std::ofstream cutc_file(cutc_path.string());
         cutc_file << "A.1 to B.1";
@@ -408,7 +438,7 @@ BOOST_FIXTURE_TEST_SUITE(compile_file_suite, compile_file_suite_fixture)
         std::string output_file_src((std::istreambuf_iterator<char>(output_file)),
                                     std::istreambuf_iterator<char>());
 
-        BOOST_CHECK_EQUAL(output_file_src, "+ 1 3 foo ! 2");
+        BOOST_CHECK_EQUAL(output_file_src, "++ foo 2 + 1 3");
     }
 
 BOOST_AUTO_TEST_SUITE_END()

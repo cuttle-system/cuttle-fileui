@@ -8,7 +8,7 @@ namespace fs = boost::filesystem;
 
 fs::path fileui::get_parent_module_path(const fs::path &path) {
     auto module_path = path;
-    for (; fs::exists(module_path / CUTTLE_FILEUI_ROOT_PATH_FILE); module_path = module_path.parent_path()) {
+    for (; !fs::exists(module_path / CUTTLE_FILEUI_ROOT_PATH_FILE); module_path = module_path.parent_path()) {
         if (module_path.parent_path() == "") {
             throw incorrect_module_structure_error(path);
         }

@@ -1,5 +1,5 @@
 #include "lang_tokenizer.hpp"
-#include "lang_parser_cutc.hpp"
+#include "lang_config_cutc_parser.hpp"
 #include "fileui_cache.hpp"
 #include "parser.hpp"
 #include "tokenizer.hpp"
@@ -14,6 +14,7 @@
 #include "file_not_found_error.hpp"
 #include "context_methods.hpp"
 #include "std.hpp"
+#include "fileui_module.hpp"
 
 using namespace cuttle;
 using namespace cuttle::fileui;
@@ -54,8 +55,7 @@ void get_languages_config(const call_tree_t &tree, const tokens_t &tokens, langu
         to.name = tokens[tree.src[tree.src[tree.src.back()[0]][1]][0]].value;
         to.version = std::stoi(tokens[tree.src[tree.src[tree.src.back()[0]][1]][1]].value);
     } else {
-        to.name = TRANSLATOR_ANY_NAME;
-        to.version = TRANSLATOR_ANY_VERSION;
+        to = from;
     }
 }
 
@@ -93,15 +93,26 @@ tree_src_element_t construct_tree_inner(vm::context_t &context, const std::vecto
 }
 
 void construct_tree(vm::context_t &context, std::deque<vm::value_t> &arg_stack, call_tree_t &tree, tokens_t &tokens) {
-    const std::vector<vm::value_t> &call_array = *arg_stack.begin()->data.array;
-    auto i = construct_tree_inner(context, call_array, tree, tokens);
-    tree.src.push_back({i});
+    tree_src_elements_t root_args;
+    for (auto elem : arg_stack) {
+        const std::vector<vm::value_t> &call_array = *elem.data.array;
+        auto i = construct_tree_inner(context, call_array, tree, tokens);
+        root_args.push_back({i});
+    }
+    tree.src.push_back(root_args);
 }
 
 void fileui::get_cached(compile_state_t &state, const fs::path &file_path, const fs::path &cutc_path, fs::path& compiled_file_path,
                 language_t &from, language_t &to, call_tree_t &tree, tokens_t &tokens
 ) {
-    if (compiled_file_path.empty()) compiled_file_path = get_compiled_file_path(file_path);
+    if (compiled_file_path.empty()) {
+        compiled_file_path = get_compiled_file_path(file_path);
+        fs::create_directories(compiled_file_path.parent_path());
+        std::ofstream cutroot_file(
+                (get_compiled_module_path(get_parent_module_path(file_path)) / CUTTLE_FILEUI_ROOT_PATH_FILE).string());
+        cutroot_file << "";
+        cutroot_file.close();
+    }
 
     fs::path compiled_cutc_path = compiled_file_path.parent_path() / fs::path(cutc_path.filename().string() + ".cutvm");
 
@@ -134,7 +145,7 @@ void fileui::get_cached(compile_state_t &state, const fs::path &file_path, const
 
         initialize(cutc_context);
 
-        lang::get_parser_cutc(cutc_context);
+        lang::get_config_cutc_parser(cutc_context);
         lang::get_tokenizer_config(cutc_tokenizer);
 
         call_tree_t cutc_compiled_tree;

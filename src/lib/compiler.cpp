@@ -11,6 +11,7 @@
 #include "generator_config.hpp"
 #include "independent_language_config_ui.hpp"
 #include "generator_methods.hpp"
+#include "fileui_module.hpp"
 
 using namespace cuttle;
 
@@ -36,7 +37,14 @@ void fileui::compile_without_generation(compile_state_t &state, const fs::path &
 
 void fileui::compile_file(compile_state_t &state, const fs::path &file_path,
                                   const fs::path &compiled_file_path, fs::path output_file_path) {
-    if (output_file_path.empty()) output_file_path = get_output_file_path(file_path);
+    if (output_file_path.empty()) {
+        output_file_path = get_output_file_path(file_path);
+        create_directories(output_file_path.parent_path());
+        std::ofstream cutroot_file(
+                (get_output_module_path(get_parent_module_path(file_path)) / CUTTLE_FILEUI_ROOT_PATH_FILE).string());
+        cutroot_file << "";
+        cutroot_file.close();
+    }
 
     values_t values;
     call_tree_t new_tree;
@@ -52,11 +60,7 @@ void fileui::compile_file(compile_state_t &state, const fs::path &file_path,
 
     initialize(context);
 
-    if (to.name == TRANSLATOR_ANY_NAME && to.version == TRANSLATOR_ANY_VERSION) {
-        get_independent_language_config(state, from, context, tokenizer_config, generator_config);
-    } else {
-        get_independent_language_config(state, to, context, tokenizer_config, generator_config);
-    }
+    get_independent_language_config(state, to, context, tokenizer_config, generator_config);
 
     generator_state_t generator_state;
     generate(tokenizer_config, generator_config, context, values, new_tree, generator_state);

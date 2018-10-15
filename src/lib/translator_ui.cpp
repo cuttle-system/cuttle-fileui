@@ -29,7 +29,9 @@ get_translator_function_tree(fileui::compile_state_t state, language_t lang, con
     cutc_file << "just '" + lang.name + "'." + std::to_string(lang.version);
     cutc_file.close();
 
-    fileui::get_cached(state, file_path, cutc_path, compiled_output_file_path, lang, lang, tree, tokens);
+    language_t to = lang;
+
+    fileui::get_cached(state, output_file_path, cutc_path, compiled_output_file_path, lang, to, tree, tokens);
 }
 
 void
@@ -65,13 +67,13 @@ void fileui::get_language_translator(compile_state_t &state, const language_t &f
                        (from.name == "cutc-parser" && from.version == 1)
                ) && to.name == "cutvm" && to.version == 1) {
         lang::get_lang_cutvm_translator(translator);
-    } else if (to.name == TRANSLATOR_ANY_NAME && to.version == TRANSLATOR_ANY_VERSION) {
+    } else if (to.name == from.name & to.version == from.version) {
         initialize(translator.dictionary);
         translator.to = to;
         translator.from = from;
     } else {
         initialize(translator.dictionary);
         auto module_path = search_module(state, from.name + "." + std::to_string(from.version));
-        get_language_translator_from_module(state, module_path,from,  to, translator);
+        get_language_translator_from_module(state, module_path, from, to, translator);
     }
 }
