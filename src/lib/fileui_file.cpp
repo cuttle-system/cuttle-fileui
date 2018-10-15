@@ -24,7 +24,7 @@ fs::path fileui::find_file(const fs::path &file_path_without_extension) {
     fs::path directory_path = file_path_without_extension.parent_path();
     std::string filename = file_path_without_extension.filename().string();
 
-    for (const auto& file_path_it : fs::recursive_directory_iterator(directory_path)) {
+    for (const auto& file_path_it : fs::directory_iterator(directory_path)) {
         const fs::path& file_path = file_path_it.path();
         if (file_path.stem().string() == filename) {
             return file_path;

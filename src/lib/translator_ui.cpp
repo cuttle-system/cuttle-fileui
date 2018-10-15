@@ -17,8 +17,8 @@ using namespace cuttle;
 namespace fs = boost::filesystem;
 
 void
-get_translator_function_tree(fileui::compile_state_t state, language_t lang, const fs::path &file_path,
-                             call_tree_t tree, tokens_t tokens) {
+get_translator_function_tree(fileui::compile_state_t &state, language_t lang, const fs::path &file_path,
+                             call_tree_t &tree, tokens_t &tokens) {
     const fs::path &output_file_path = fileui::get_output_file_path(file_path);
     const fs::path &cutc_path = output_file_path.string() + ".cutc";
     fs::path compiled_output_file_path = fileui::get_compiled_file_path(output_file_path);
@@ -44,7 +44,7 @@ get_language_translator_from_module(fileui::compile_state_t &state, const fs::pa
         return;
     }
 
-    for (const auto &function_path_it : fs::recursive_directory_iterator(translator_path / "functions")) {
+    for (const auto &function_path_it : fs::directory_iterator(translator_path / "functions")) {
         const fs::path &function_path = function_path_it.path();
         const fs::path &pattern_path = fileui::find_file(function_path / "pattern");
         const fs::path &output_path = fileui::find_file(function_path / "output");
