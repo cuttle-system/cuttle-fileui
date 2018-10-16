@@ -27,7 +27,8 @@ void cache_file(compile_state_t &state, const fs::path &file_path, const fs::pat
                 context_t &cutvm_context, const tokenizer_config_t &cutvm_tokenizer,
                 translator_t &cutvm_translator, generator_config_t &cutvm_generator,
                 call_tree_t &tree, tokens_t &tokens,
-                call_tree_t &new_tree, values_t &values
+                call_tree_t &new_tree, values_t &values,
+                bool cache
 ) {
     std::ifstream config_file(file_path.string());
     std::string src((std::istreambuf_iterator<char>(config_file)),
@@ -43,9 +44,11 @@ void cache_file(compile_state_t &state, const fs::path &file_path, const fs::pat
     translate(cutvm_translator, tokens, tree, values, new_tree);
     generate(cutvm_tokenizer, cutvm_generator, cutvm_context, values, new_tree, generator_state);
 
-    std::ofstream compiled_config_file(compiled_file_path.string());
-    compiled_config_file << generator_state.output;
-    compiled_config_file.close();
+    if (cache) {
+        std::ofstream compiled_config_file(compiled_file_path.string());
+        compiled_config_file << generator_state.output;
+        compiled_config_file.close();
+    }
 }
 
 void get_languages_config(const call_tree_t &tree, const tokens_t &tokens, language_t &from, language_t &to) {
@@ -108,7 +111,7 @@ void construct_tree(vm::context_t &context, std::deque<vm::value_t> &arg_stack, 
 }
 
 void fileui::get_cached(compile_state_t &state, const fs::path &file_path, const fs::path &cutc_path, fs::path& compiled_file_path,
-                language_t &from, language_t &to, call_tree_t &tree, tokens_t &tokens
+                language_t &from, language_t &to, call_tree_t &tree, tokens_t &tokens, bool cache
 ) {
     if (compiled_file_path.empty()) {
         compiled_file_path = get_compiled_file_path(file_path);
@@ -158,7 +161,7 @@ void fileui::get_cached(compile_state_t &state, const fs::path &file_path, const
 
         cache_file(state, cutc_path, compiled_cutc_path, cutc_context, cutc_tokenizer,
                    cutvm_context, cutvm_tokenizer, cutvm_translator, cutvm_generator,
-                   cutc_tree, cutc_tokens, cutc_compiled_tree, cutc_compiled_values);
+                   cutc_tree, cutc_tokens, cutc_compiled_tree, cutc_compiled_values, cache);
 
         context_t context;
         tokenizer_config_t tokenizer;
@@ -173,7 +176,7 @@ void fileui::get_cached(compile_state_t &state, const fs::path &file_path, const
 
         cache_file(state, file_path, compiled_file_path, context, tokenizer,
                    cutvm_context, cutvm_tokenizer, cutvm_translator, cutvm_generator,
-                   tree, tokens, file_compiled_tree, file_compiled_values);
+                   tree, tokens, file_compiled_tree, file_compiled_values, cache);
     } else {
         std::deque<vm::value_t> cutc_stack, stack;
         vm::context_t vm_context1, vm_context2;

@@ -87,6 +87,6 @@ int main(int argc, char *argv[]) {
     construct_search_path(c_module_path, search_path);
 
     cuttle::fileui::compile_state_t state {search_path};
-    cuttle::fileui::compile_file(state, *c_file_path, c_file_path->string() + ".cached", c_file_path->string() + ".output");
+    cuttle::fileui::compile_file(state, *c_file_path, "", c_file_path->string() + ".output", false);
     std::cout << SUCCESS_MESSAGE;
 }

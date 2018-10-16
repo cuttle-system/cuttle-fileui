@@ -18,7 +18,7 @@ using namespace cuttle;
 namespace fs = boost::filesystem;
 
 void fileui::compile_without_generation(compile_state_t &state, const fs::path &file_path, fs::path compiled_file_path,
-                                call_tree_t &new_tree, values_t &values, language_t &from, language_t &to) {
+                                call_tree_t &new_tree, values_t &values, language_t &from, language_t &to, bool cache) {
     fs::path cutc_path = file_path.string() + ".cutc";
 
     call_tree_t tree;
@@ -28,7 +28,7 @@ void fileui::compile_without_generation(compile_state_t &state, const fs::path &
         throw file_not_found_error(file_path);
     }
 
-    get_cached(state, file_path, cutc_path, compiled_file_path, from, to, tree, tokens);
+    get_cached(state, file_path, cutc_path, compiled_file_path, from, to, tree, tokens, cache);
 
     translator_t translator;
     get_language_translator(state, from, to, translator);
@@ -36,7 +36,7 @@ void fileui::compile_without_generation(compile_state_t &state, const fs::path &
 }
 
 void fileui::compile_file(compile_state_t &state, const fs::path &file_path,
-                                  const fs::path &compiled_file_path, fs::path output_file_path) {
+                                  const fs::path &compiled_file_path, fs::path output_file_path, bool cache) {
     if (output_file_path.empty()) {
         output_file_path = get_output_file_path(file_path);
         create_directories(output_file_path.parent_path());
@@ -52,7 +52,7 @@ void fileui::compile_file(compile_state_t &state, const fs::path &file_path,
 
     compile_without_generation(state, file_path, compiled_file_path,
                                new_tree, values,
-                               from, to);
+                               from, to, cache);
 
     context_t context;
     tokenizer_config_t tokenizer_config;
