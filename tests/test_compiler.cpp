@@ -213,7 +213,7 @@ BOOST_FIXTURE_TEST_SUITE(compile_file_suite, compile_file_suite_fixture)
         A_parser_foo_file << "name 'foo'\n"
                              "type infix\n"
                              "args_number 2\n"
-                             "executes_before start_func_id";
+                             "executes_before last_func_id";
         A_parser_foo_file.close();
 
         auto A_parser_plus_path = A_parser_path / "functions" / "2_plus";
@@ -261,7 +261,7 @@ BOOST_FIXTURE_TEST_SUITE(compile_file_suite, compile_file_suite_fixture)
         B_parser_foo_file << "name 'foo'\n"
                              "type infix\n"
                              "args_number 2\n"
-                             "executes_before start_func_id";
+                             "executes_before last_func_id";
         B_parser_foo_file.close();
 
         auto B_parser_plus_path = B_parser_path / "functions" / "2_plus";
@@ -335,7 +335,7 @@ BOOST_FIXTURE_TEST_SUITE(compile_file_suite, compile_file_suite_fixture)
         A_parser_foo_file << "name 'foo'\n"
                              "type infix\n"
                              "args_number 2\n"
-                             "executes_before start_func_id";
+                             "executes_before last_func_id";
         A_parser_foo_file.close();
 
         auto A_parser_plus_path = A_parser_path / "functions" / "2_plus";
@@ -383,7 +383,7 @@ BOOST_FIXTURE_TEST_SUITE(compile_file_suite, compile_file_suite_fixture)
         B_parser_foo_file << "name 'foo'\n"
                              "type prefix\n"
                              "args_number 2\n"
-                             "executes_before start_func_id";
+                             "executes_before last_func_id";
         B_parser_foo_file.close();
 
         auto B_parser_plus_path = B_parser_path / "functions" / "2_plus";
@@ -411,7 +411,7 @@ BOOST_FIXTURE_TEST_SUITE(compile_file_suite, compile_file_suite_fixture)
         B_parser_plus_plus_file << "name '++'\n"
                                    "type prefix\n"
                                    "args_number 1\n"
-                                   "executes_before start_func_id";
+                                   "executes_before last_func_id";
         B_parser_plus_plus_file.close();
 
         path A_B_translator_path = tmp / "A.1" / "translators" / "B.1";
