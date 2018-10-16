@@ -11,15 +11,15 @@
 #define HELP_MESSAGE \
 	"Usage:" << std::endl \
 	<< "    input_file_path     - path to file to compile" << std::endl \
-	<< "    -mp module_path - module search paths (use ':' to separate them, e.g /foo/bar:foobar/baz)" << std::endl \
-	<< "    -h|--help       - display help message and exit" << std::endl
+	<< "    -mp module_path     - module search paths (use ':' to separate them, e.g /foo/bar:foobar/baz)" << std::endl \
+	<< "    -h|--help           - display help message and exit" << std::endl
 
 #define BAD_ARGS_ERROR_MESSAGE \
 	"Invalid args"
 
 #define SUCCESS_MESSAGE \
-    "You can see compiled version of your file at " \
-    << cuttle::fileui::get_output_file_path(*c_file_path) << std::endl;
+    "You can see a compiled version of your file at " \
+    << c_file_path->string() + ".output" << std::endl;
 
 void parse_args(int argc, char *argv[], boost::filesystem::path **file_path, char **module_path) {
 	using namespace std;
