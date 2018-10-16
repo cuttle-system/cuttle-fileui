@@ -213,7 +213,7 @@ BOOST_FIXTURE_TEST_SUITE(compile_file_suite, compile_file_suite_fixture)
         A_parser_foo_file << "name 'foo'\n"
                              "type infix\n"
                              "args_number 2\n"
-                             "priority_after start_func_id";
+                             "executes_before start_func_id";
         A_parser_foo_file.close();
 
         auto A_parser_plus_path = A_parser_path / "functions" / "2_plus";
@@ -227,7 +227,7 @@ BOOST_FIXTURE_TEST_SUITE(compile_file_suite, compile_file_suite_fixture)
         A_parser_plus_file << "name '+'\n"
                               "type infix\n"
                               "args_number 2\n"
-                              "priority_after func_id 'foo'";
+                              "executes_before func_id 'foo'";
         A_parser_plus_file.close();
 
         auto A_parser_factorial_path = A_parser_path / "functions" / "3_factorial";
@@ -241,7 +241,7 @@ BOOST_FIXTURE_TEST_SUITE(compile_file_suite, compile_file_suite_fixture)
         A_parser_factorial_file << "name '!'\n"
                                    "type postfix\n"
                                    "args_number 1\n"
-                                   "priority_after func_id 'foo'";
+                                   "executes_before func_id 'foo'";
         A_parser_factorial_file.close();
 
         path B_parser_path = tmp / "B.1" / "parser";
@@ -261,7 +261,7 @@ BOOST_FIXTURE_TEST_SUITE(compile_file_suite, compile_file_suite_fixture)
         B_parser_foo_file << "name 'foo'\n"
                              "type infix\n"
                              "args_number 2\n"
-                             "priority_after start_func_id";
+                             "executes_before start_func_id";
         B_parser_foo_file.close();
 
         auto B_parser_plus_path = B_parser_path / "functions" / "2_plus";
@@ -275,7 +275,7 @@ BOOST_FIXTURE_TEST_SUITE(compile_file_suite, compile_file_suite_fixture)
         B_parser_plus_file << "name '+'\n"
                               "type prefix\n"
                               "args_number 2\n"
-                              "priority_after func_id 'foo'";
+                              "executes_before func_id 'foo'";
         B_parser_plus_file.close();
 
         auto B_parser_factorial_path = B_parser_path / "functions" / "3_factorial";
@@ -289,7 +289,7 @@ BOOST_FIXTURE_TEST_SUITE(compile_file_suite, compile_file_suite_fixture)
         B_parser_factorial_file << "name '!'\n"
                                    "type prefix\n"
                                    "args_number 1\n"
-                                   "priority_after func_id 'foo'";
+                                   "executes_before func_id 'foo'";
         B_parser_factorial_file.close();
 
         std::ofstream cutc_file(cutc_path.string());
@@ -335,7 +335,7 @@ BOOST_FIXTURE_TEST_SUITE(compile_file_suite, compile_file_suite_fixture)
         A_parser_foo_file << "name 'foo'\n"
                              "type infix\n"
                              "args_number 2\n"
-                             "priority_after start_func_id";
+                             "executes_before start_func_id";
         A_parser_foo_file.close();
 
         auto A_parser_plus_path = A_parser_path / "functions" / "2_plus";
@@ -349,7 +349,7 @@ BOOST_FIXTURE_TEST_SUITE(compile_file_suite, compile_file_suite_fixture)
         A_parser_plus_file << "name '+'\n"
                               "type infix\n"
                               "args_number 2\n"
-                              "priority_after func_id 'foo'";
+                              "executes_before func_id 'foo'";
         A_parser_plus_file.close();
 
         auto A_parser_factorial_path = A_parser_path / "functions" / "3_factorial";
@@ -363,7 +363,7 @@ BOOST_FIXTURE_TEST_SUITE(compile_file_suite, compile_file_suite_fixture)
         A_parser_factorial_file << "name '!'\n"
                                    "type postfix\n"
                                    "args_number 1\n"
-                                   "priority_after func_id 'foo'";
+                                   "executes_before func_id 'foo'";
         A_parser_factorial_file.close();
 
         path B_parser_path = tmp / "B.1" / "parser";
@@ -383,7 +383,7 @@ BOOST_FIXTURE_TEST_SUITE(compile_file_suite, compile_file_suite_fixture)
         B_parser_foo_file << "name 'foo'\n"
                              "type prefix\n"
                              "args_number 2\n"
-                             "priority_after start_func_id";
+                             "executes_before start_func_id";
         B_parser_foo_file.close();
 
         auto B_parser_plus_path = B_parser_path / "functions" / "2_plus";
@@ -397,7 +397,7 @@ BOOST_FIXTURE_TEST_SUITE(compile_file_suite, compile_file_suite_fixture)
         B_parser_plus_file << "name '+'\n"
                               "type prefix\n"
                               "args_number 2\n"
-                              "priority_after func_id 'foo'";
+                              "executes_before func_id 'foo'";
         B_parser_plus_file.close();
 
         auto B_parser_plus_plus_path = B_parser_path / "functions" / "3_plus_plus";
@@ -411,7 +411,7 @@ BOOST_FIXTURE_TEST_SUITE(compile_file_suite, compile_file_suite_fixture)
         B_parser_plus_plus_file << "name '++'\n"
                                    "type prefix\n"
                                    "args_number 1\n"
-                                   "priority_after start_func_id";
+                                   "executes_before start_func_id";
         B_parser_plus_plus_file.close();
 
         path A_B_translator_path = tmp / "A.1" / "translators" / "B.1";
