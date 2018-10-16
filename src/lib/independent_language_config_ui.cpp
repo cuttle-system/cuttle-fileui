@@ -2,6 +2,8 @@
 #include "lang_tokenizer_cutc_parser.hpp"
 #include "lang_tokenizer.hpp"
 #include "lang_parser_cutc_parser.hpp"
+#include "lang_generator_func_cutc_parser.hpp"
+#include "lang_generator_arg_cutc_parser.hpp"
 #include "cutvm_context.hpp"
 #include "cutvm_tokenizer.hpp"
 #include "cutvm_generator.hpp"
@@ -21,6 +23,12 @@ void fileui::get_independent_language_config(compile_state_t &state, const langu
         lang::get_tokenizer_config(tokenizer);
     } else if (lang.name == "cutc-parser" && lang.version == 1) {
         lang::get_parser_cutc_parser(context);
+        lang::get_tokenizer_config(tokenizer);
+    } else if (lang.name == "cutc-generator-func" && lang.version == 1) {
+        lang::get_generator_func_cutc_parser(context);
+        lang::get_tokenizer_config(tokenizer);
+    } else if (lang.name == "cutc-generator-arg" && lang.version == 1) {
+        lang::get_generator_arg_cutc_parser(context);
         lang::get_tokenizer_config(tokenizer);
     } else if ((lang.name == "cutvm" || lang.name == "cutvm-cache") && lang.version == 1) {
         lang::get_cutvm_context(context);

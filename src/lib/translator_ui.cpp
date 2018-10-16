@@ -64,7 +64,9 @@ void fileui::get_language_translator(compile_state_t &state, const language_t &f
         lang::get_cutvm_translator(translator);
     } else if ((
                        (from.name == "cutc-tokenizer" && from.version == 1) ||
-                       (from.name == "cutc-parser" && from.version == 1)
+                       (from.name == "cutc-parser" && from.version == 1) ||
+                       (from.name == "cutc-generator-func" && from.version == 1) ||
+                       (from.name == "cutc-generator-arg" && from.version == 1)
                ) && to.name == "cutvm" && to.version == 1) {
         lang::get_lang_cutvm_translator(translator);
     } else if (to.name == from.name & to.version == from.version) {
