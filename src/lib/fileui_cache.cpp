@@ -16,6 +16,7 @@
 #include "std.hpp"
 #include "fileui_module.hpp"
 #include "token_methods.hpp"
+#include "cutvm_translator.hpp"
 
 using namespace cuttle;
 using namespace cuttle::fileui;
@@ -81,6 +82,10 @@ token_t construct_token(const std::vector<vm::value_t> &token_array) {
 }
 
 tree_src_element_t construct_tree_inner(vm::context_t &context, const std::vector<vm::value_t> &call_array, call_tree_t &tree, tokens_t &tokens) {
+    if (call_array[1].type.id == vm::type_id::string && *call_array[1].data.string == CUTTLE_CUTVM_CALL_TREE_NIL) {
+        return CALL_TREE_SRC_NIL;
+    }
+
     auto index = (tree_src_element_t) tokens.size();
     tree.src.push_back({});
 
