@@ -6,12 +6,12 @@ using namespace cuttle;
 namespace fs = boost::filesystem;
 
 void fileui::interpret_file(vm::context_t &context, const fs::path &file_path, std::deque<vm::value_t> &arg_stack) {
-    std::ifstream config_file(file_path.string());
-    while (!config_file.eof()) {
-        if (config_file.peek() == EOF) {
+    std::ifstream file(file_path.string());
+    while (!file.eof()) {
+        if (file.peek() == EOF) {
             break;
         }
-        vm::eval(config_file, context, arg_stack);
+        vm::eval(file, context, arg_stack);
     }
-    config_file.close();
+    file.close();
 }
