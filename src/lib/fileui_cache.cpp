@@ -64,19 +64,6 @@ void get_languages_config(const call_tree_t &tree, const tokens_t &tokens, langu
     }
 }
 
-token_t token_from_vm_value(vm::context_t &context, const vm::value_t &value) {
-    vm::value_t ret;
-    switch (value.type.id) {
-        case vm::type_id::string:
-            return token_t{token_type::string, *value.data.string};
-        case vm::type_id::integral:
-            vm::call(context, "string", {value}, 1, ret);
-            return token_t{token_type::number, *ret.data.string};
-        default:
-            throw std::invalid_argument("A token can't be constructed from the value");
-    }
-}
-
 token_t construct_token(const std::vector<vm::value_t> &token_array) {
     return {token_type_from_string(*token_array[0].data.string), *token_array[1].data.string};
 }
