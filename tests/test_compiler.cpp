@@ -310,148 +310,148 @@ BOOST_FIXTURE_TEST_SUITE(compile_file_suite, compile_file_suite_fixture)
         BOOST_CHECK_EQUAL(output_file_src, "+ 1 3 foo ! 2");
     }
 
-    BOOST_AUTO_TEST_CASE(case4) {
-        path tmp = create_tmp();
-        path file_path = tmp / "foo.A";
-        path cutc_path = file_path.string() + ".cutc";
-        path compiled_file_path = file_path.string() + ".cutvm";
-        path compiled_cutc_path = cutc_path.string() + ".cutvm";
-        path output_file_path = tmp / "foo.B";
-
-        path A_parser_path = tmp / "A.1" / "parser";
-
-        auto A_parser_foo_path = A_parser_path / "functions" / "1_foo";
-        create_directories(A_parser_foo_path);
-
-        std::ofstream A_cutroot((tmp / "A.1" / ".cutroot").string());
-        A_cutroot << "";
-        A_cutroot.close();
-
-        std::ofstream A_parser_foo_cutc_file((A_parser_foo_path / "rules.cutl.cutc").string());
-        A_parser_foo_cutc_file << "'cutc-parser'.1 to 'cutvm'.1";
-        A_parser_foo_cutc_file.close();
-
-        std::ofstream A_parser_foo_file((A_parser_foo_path / "rules.cutl").string());
-        A_parser_foo_file << "name 'foo'\n"
-                             "type infix\n"
-                             "args_number 2\n"
-                             "executes_before last_func_id";
-        A_parser_foo_file.close();
-
-        auto A_parser_plus_path = A_parser_path / "functions" / "2_plus";
-        create_directories(A_parser_plus_path);
-
-        std::ofstream A_parser_plus_cutc_file((A_parser_plus_path / "rules.cutl.cutc").string());
-        A_parser_plus_cutc_file << "'cutc-parser'.1 to 'cutvm'.1";
-        A_parser_plus_cutc_file.close();
-
-        std::ofstream A_parser_plus_file((A_parser_plus_path / "rules.cutl").string());
-        A_parser_plus_file << "name '+'\n"
-                              "type infix\n"
-                              "args_number 2\n"
-                              "executes_before func_id 'foo'";
-        A_parser_plus_file.close();
-
-        auto A_parser_factorial_path = A_parser_path / "functions" / "3_factorial";
-        create_directories(A_parser_factorial_path);
-
-        std::ofstream A_parser_factorial_cutc_file((A_parser_factorial_path / "rules.cutl.cutc").string());
-        A_parser_factorial_cutc_file << "'cutc-parser'.1 to 'cutvm'.1";
-        A_parser_factorial_cutc_file.close();
-
-        std::ofstream A_parser_factorial_file((A_parser_factorial_path / "rules.cutl").string());
-        A_parser_factorial_file << "name '!'\n"
-                                   "type postfix\n"
-                                   "args_number 1\n"
-                                   "executes_before func_id 'foo'";
-        A_parser_factorial_file.close();
-
-        path B_parser_path = tmp / "B.1" / "parser";
-
-        auto B_parser_foo_path = B_parser_path / "functions" / "1_foo";
-        create_directories(B_parser_foo_path);
-
-        std::ofstream B_cutroot((tmp / "B.1" / ".cutroot").string());
-        B_cutroot << "";
-        B_cutroot.close();
-
-        std::ofstream B_parser_foo_cutc_file((B_parser_foo_path / "rules.cutl.cutc").string());
-        B_parser_foo_cutc_file << "'cutc-parser'.1 to 'cutvm'.1";
-        B_parser_foo_cutc_file.close();
-
-        std::ofstream B_parser_foo_file((B_parser_foo_path / "rules.cutl").string());
-        B_parser_foo_file << "name 'foo'\n"
-                             "type prefix\n"
-                             "args_number 2\n"
-                             "executes_before last_func_id";
-        B_parser_foo_file.close();
-
-        auto B_parser_plus_path = B_parser_path / "functions" / "2_plus";
-        create_directories(B_parser_plus_path);
-
-        std::ofstream B_parser_plus_cutc_file((B_parser_plus_path / "rules.cutl.cutc").string());
-        B_parser_plus_cutc_file << "'cutc-parser'.1 to 'cutvm'.1";
-        B_parser_plus_cutc_file.close();
-
-        std::ofstream B_parser_plus_file((B_parser_plus_path / "rules.cutl").string());
-        B_parser_plus_file << "name '+'\n"
-                              "type prefix\n"
-                              "args_number 2\n"
-                              "executes_before func_id 'foo'";
-        B_parser_plus_file.close();
-
-        auto B_parser_plus_plus_path = B_parser_path / "functions" / "3_plus_plus";
-        create_directories(B_parser_plus_plus_path);
-
-        std::ofstream B_parser_plus_plus_cutc_file((B_parser_plus_plus_path / "rules.cutl.cutc").string());
-        B_parser_plus_plus_cutc_file << "'cutc-parser'.1 to 'cutvm'.1";
-        B_parser_plus_plus_cutc_file.close();
-
-        std::ofstream B_parser_plus_plus_file((B_parser_plus_plus_path / "rules.cutl").string());
-        B_parser_plus_plus_file << "name '++'\n"
-                                   "type prefix\n"
-                                   "args_number 1\n"
-                                   "executes_before last_func_id";
-        B_parser_plus_plus_file.close();
-
-        path A_B_translator_path = tmp / "A.1" / "translators" / "B.1";
-
-        auto A_B_translator_bar_path = A_B_translator_path / "functions" / "1_bar";
-        create_directories(A_B_translator_bar_path);
-
-        std::ofstream A_B_translator_bar_pattern_cutc_file((A_B_translator_bar_path / "pattern.A.cutc").string());
-        A_B_translator_bar_pattern_cutc_file << "just 'A'.1";
-        A_B_translator_bar_pattern_cutc_file.close();
-
-        std::ofstream A_B_translator_bar_pattern_file((A_B_translator_bar_path / "pattern.A").string());
-        A_B_translator_bar_pattern_file << "0pf_func0 foo 0p_a0 !";
-        A_B_translator_bar_pattern_file.close();
-
-        std::ofstream A_B_translator_bar_output_cutc_file((A_B_translator_bar_path / "output.B.cutc").string());
-        A_B_translator_bar_output_cutc_file << "just 'B'.1";
-        A_B_translator_bar_output_cutc_file.close();
-
-        std::ofstream A_B_translator_bar_output_file((A_B_translator_bar_path / "output.B").string());
-        A_B_translator_bar_output_file << "++ foo 0p_a0 0pf_func0";
-        A_B_translator_bar_output_file.close();
-
-        std::ofstream cutc_file(cutc_path.string());
-        cutc_file << "A.1 to B.1";
-        cutc_file.close();
-
-        std::ofstream src_file(file_path.string());
-        src_file << "1 + 3 foo 2 !";
-        src_file.close();
-
-        state.search_path = {tmp};
-        compile_file(state, file_path, compiled_file_path, output_file_path);
-
-        std::ifstream output_file(output_file_path.string());
-        std::string output_file_src((std::istreambuf_iterator<char>(output_file)),
-                                    std::istreambuf_iterator<char>());
-
-        BOOST_CHECK_EQUAL(output_file_src, "++ foo 2 + 1 3");
-    }
+//    BOOST_AUTO_TEST_CASE(case4) {
+//        path tmp = create_tmp();
+//        path file_path = tmp / "foo.A";
+//        path cutc_path = file_path.string() + ".cutc";
+//        path compiled_file_path = file_path.string() + ".cutvm";
+//        path compiled_cutc_path = cutc_path.string() + ".cutvm";
+//        path output_file_path = tmp / "foo.B";
+//
+//        path A_parser_path = tmp / "A.1" / "parser";
+//
+//        auto A_parser_foo_path = A_parser_path / "functions" / "1_foo";
+//        create_directories(A_parser_foo_path);
+//
+//        std::ofstream A_cutroot((tmp / "A.1" / ".cutroot").string());
+//        A_cutroot << "";
+//        A_cutroot.close();
+//
+//        std::ofstream A_parser_foo_cutc_file((A_parser_foo_path / "rules.cutl.cutc").string());
+//        A_parser_foo_cutc_file << "'cutc-parser'.1 to 'cutvm'.1";
+//        A_parser_foo_cutc_file.close();
+//
+//        std::ofstream A_parser_foo_file((A_parser_foo_path / "rules.cutl").string());
+//        A_parser_foo_file << "name 'foo'\n"
+//                             "type infix\n"
+//                             "args_number 2\n"
+//                             "executes_before last_func_id";
+//        A_parser_foo_file.close();
+//
+//        auto A_parser_plus_path = A_parser_path / "functions" / "2_plus";
+//        create_directories(A_parser_plus_path);
+//
+//        std::ofstream A_parser_plus_cutc_file((A_parser_plus_path / "rules.cutl.cutc").string());
+//        A_parser_plus_cutc_file << "'cutc-parser'.1 to 'cutvm'.1";
+//        A_parser_plus_cutc_file.close();
+//
+//        std::ofstream A_parser_plus_file((A_parser_plus_path / "rules.cutl").string());
+//        A_parser_plus_file << "name '+'\n"
+//                              "type infix\n"
+//                              "args_number 2\n"
+//                              "executes_before func_id 'foo'";
+//        A_parser_plus_file.close();
+//
+//        auto A_parser_factorial_path = A_parser_path / "functions" / "3_factorial";
+//        create_directories(A_parser_factorial_path);
+//
+//        std::ofstream A_parser_factorial_cutc_file((A_parser_factorial_path / "rules.cutl.cutc").string());
+//        A_parser_factorial_cutc_file << "'cutc-parser'.1 to 'cutvm'.1";
+//        A_parser_factorial_cutc_file.close();
+//
+//        std::ofstream A_parser_factorial_file((A_parser_factorial_path / "rules.cutl").string());
+//        A_parser_factorial_file << "name '!'\n"
+//                                   "type postfix\n"
+//                                   "args_number 1\n"
+//                                   "executes_before func_id 'foo'";
+//        A_parser_factorial_file.close();
+//
+//        path B_parser_path = tmp / "B.1" / "parser";
+//
+//        auto B_parser_foo_path = B_parser_path / "functions" / "1_foo";
+//        create_directories(B_parser_foo_path);
+//
+//        std::ofstream B_cutroot((tmp / "B.1" / ".cutroot").string());
+//        B_cutroot << "";
+//        B_cutroot.close();
+//
+//        std::ofstream B_parser_foo_cutc_file((B_parser_foo_path / "rules.cutl.cutc").string());
+//        B_parser_foo_cutc_file << "'cutc-parser'.1 to 'cutvm'.1";
+//        B_parser_foo_cutc_file.close();
+//
+//        std::ofstream B_parser_foo_file((B_parser_foo_path / "rules.cutl").string());
+//        B_parser_foo_file << "name 'foo'\n"
+//                             "type prefix\n"
+//                             "args_number 2\n"
+//                             "executes_before last_func_id";
+//        B_parser_foo_file.close();
+//
+//        auto B_parser_plus_path = B_parser_path / "functions" / "2_plus";
+//        create_directories(B_parser_plus_path);
+//
+//        std::ofstream B_parser_plus_cutc_file((B_parser_plus_path / "rules.cutl.cutc").string());
+//        B_parser_plus_cutc_file << "'cutc-parser'.1 to 'cutvm'.1";
+//        B_parser_plus_cutc_file.close();
+//
+//        std::ofstream B_parser_plus_file((B_parser_plus_path / "rules.cutl").string());
+//        B_parser_plus_file << "name '+'\n"
+//                              "type prefix\n"
+//                              "args_number 2\n"
+//                              "executes_before func_id 'foo'";
+//        B_parser_plus_file.close();
+//
+//        auto B_parser_plus_plus_path = B_parser_path / "functions" / "3_plus_plus";
+//        create_directories(B_parser_plus_plus_path);
+//
+//        std::ofstream B_parser_plus_plus_cutc_file((B_parser_plus_plus_path / "rules.cutl.cutc").string());
+//        B_parser_plus_plus_cutc_file << "'cutc-parser'.1 to 'cutvm'.1";
+//        B_parser_plus_plus_cutc_file.close();
+//
+//        std::ofstream B_parser_plus_plus_file((B_parser_plus_plus_path / "rules.cutl").string());
+//        B_parser_plus_plus_file << "name '++'\n"
+//                                   "type prefix\n"
+//                                   "args_number 1\n"
+//                                   "executes_before last_func_id";
+//        B_parser_plus_plus_file.close();
+//
+//        path A_B_translator_path = tmp / "A.1" / "translators" / "B.1";
+//
+//        auto A_B_translator_bar_path = A_B_translator_path / "functions" / "1_bar";
+//        create_directories(A_B_translator_bar_path);
+//
+//        std::ofstream A_B_translator_bar_pattern_cutc_file((A_B_translator_bar_path / "pattern.A.cutc").string());
+//        A_B_translator_bar_pattern_cutc_file << "just 'A'.1";
+//        A_B_translator_bar_pattern_cutc_file.close();
+//
+//        std::ofstream A_B_translator_bar_pattern_file((A_B_translator_bar_path / "pattern.A").string());
+//        A_B_translator_bar_pattern_file << "0pf_func0 foo 0p_a0 !";
+//        A_B_translator_bar_pattern_file.close();
+//
+//        std::ofstream A_B_translator_bar_output_cutc_file((A_B_translator_bar_path / "output.B.cutc").string());
+//        A_B_translator_bar_output_cutc_file << "just 'B'.1";
+//        A_B_translator_bar_output_cutc_file.close();
+//
+//        std::ofstream A_B_translator_bar_output_file((A_B_translator_bar_path / "output.B").string());
+//        A_B_translator_bar_output_file << "++ foo 0p_a0 0pf_func0";
+//        A_B_translator_bar_output_file.close();
+//
+//        std::ofstream cutc_file(cutc_path.string());
+//        cutc_file << "A.1 to B.1";
+//        cutc_file.close();
+//
+//        std::ofstream src_file(file_path.string());
+//        src_file << "1 + 3 foo 2 !";
+//        src_file.close();
+//
+//        state.search_path = {tmp};
+//        compile_file(state, file_path, compiled_file_path, output_file_path);
+//
+//        std::ifstream output_file(output_file_path.string());
+//        std::string output_file_src((std::istreambuf_iterator<char>(output_file)),
+//                                    std::istreambuf_iterator<char>());
+//
+//        BOOST_CHECK_EQUAL(output_file_src, "++ foo 2 + 1 3");
+//    }
 
 BOOST_AUTO_TEST_SUITE_END()
 

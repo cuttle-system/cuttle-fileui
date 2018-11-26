@@ -48,4 +48,11 @@ fileui::get_tokenizer_from_module(compile_state_t &state, const fs::path &module
     if (tokenizer.macro_pf.empty()) tokenizer.macro_pf["0pf"].insert("0");
     if (tokenizer.macro_ps.empty()) tokenizer.macro_ps["0ps"].insert("0");
     if (tokenizer.macro_if.empty()) tokenizer.macro_if.insert("0if");
+    if (tokenizer.macro_elif.empty()) tokenizer.macro_elif.insert("elif");
+    if (tokenizer.macro_else.empty()) tokenizer.macro_else.insert("0else");
+    if (tokenizer.macro_eq.empty()) tokenizer.macro_eq.insert("0eq");
+    if (tokenizer.macro_block_start.empty()) tokenizer.macro_block_start.insert("0do");
+    if (tokenizer.macro_block_end.empty()) tokenizer.macro_block_end.insert("0end");
+    if (tokenizer.macro_set.empty()) tokenizer.macro_set.insert("0set");
+    if (tokenizer.macro_get.empty()) tokenizer.macro_get.insert("0get");
 }

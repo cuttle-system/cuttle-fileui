@@ -4,6 +4,7 @@
 #include "lang_parser_cutc_parser.hpp"
 #include "lang_generator_func_cutc_parser.hpp"
 #include "lang_generator_arg_cutc_parser.hpp"
+#include "lang_macro_functions_parser.hpp"
 #include "cutvm_context.hpp"
 #include "cutvm_tokenizer.hpp"
 #include "cutvm_generator.hpp"
@@ -30,11 +31,12 @@ void fileui::get_independent_language_config(compile_state_t &state, const langu
     } else if (lang.name == "cutc-generator-arg" && lang.version == 1) {
         lang::get_generator_arg_cutc_parser(context);
         lang::get_tokenizer_config(tokenizer);
-    } else if ((lang.name == "cutvm" || lang.name == "cutvm-cache") && lang.version == 1) {
+    } else if ((lang.name == "cutvm" || lang.name == "cutvm-cache" || lang.name == "cutvm-translator-output") && lang.version == 1) {
         lang::get_cutvm_context(context);
         lang::get_cutvm_tokenizer_config(tokenizer);
         lang::get_cutvm_generator_config(generator_config);
     } else {
+        lang::get_macro_functions_parser(context);
         auto module_path = search_module(state, lang.name + "." + std::to_string(lang.version));
         get_tokenizer_from_module(state, module_path, tokenizer);
         get_context_from_module(state, module_path, context);

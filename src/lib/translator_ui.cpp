@@ -1,3 +1,4 @@
+#include <iostream>
 #include "context.hpp"
 #include "generator_config.hpp"
 #include "translator_ui.hpp"
@@ -12,9 +13,19 @@
 #include "fileui_cache.hpp"
 #include "independent_language_config_ui.hpp"
 #include "dictionary_funcs.hpp"
+#include "lang_output_translator.hpp"
 
 using namespace cuttle;
 namespace fs = boost::filesystem;
+
+void set_translator_output_tree(fileui::compile_state_t &state, language_t lang, const fs::path &file_path, std::string &vm_src) {
+    const fs::path &output_file_path = fileui::get_output_file_path(file_path);
+    fileui::compile_file(state, file_path);
+    std::ifstream file (output_file_path.string());
+
+    vm_src = std::string((std::istreambuf_iterator<char>(file)),
+            std::istreambuf_iterator<char>());
+}
 
 void
 get_translator_function_tree(fileui::compile_state_t &state, language_t lang, const fs::path &file_path,
@@ -48,20 +59,22 @@ get_language_translator_from_module(fileui::compile_state_t &state, const fs::pa
         const fs::path &function_path = function_path_it.path();
         const fs::path &pattern_path = fileui::find_file(function_path / "pattern");
         const fs::path &output_path = fileui::find_file(function_path / "output");
+        std::string vm_src;
         call_tree_t pattern_tree, output_tree;
         tokens_t pattern_tokens, output_tokens;
         get_translator_function_tree(state, from, pattern_path, pattern_tree, pattern_tokens);
-        get_translator_function_tree(state, to, output_path, output_tree, output_tokens);
+        set_translator_output_tree(state, to, output_path, vm_src);
         auto func_id = add(translator.dictionary, pattern_tree, pattern_tokens, dictionary_funcs::apply_pattern_output);
-        translator.dictionary.output_trees.insert({func_id, output_tree});
-        translator.dictionary.output_tokens.insert({func_id, output_tokens});
-    };
+        translator.dictionary.vm_output_trees.insert({func_id, vm_src});
+    }
 }
 
 void fileui::get_language_translator(compile_state_t &state, const language_t &from, const language_t &to,
                                      translator_t &translator) {
     if (to.name == "cutvm-cache" && to.version == 1) {
         lang::get_cutvm_translator(translator);
+    } else if (to.name == "cutvm-translator-output" && to.version == 1) {
+        lang::get_output_translator(translator);
     } else if ((
                        (from.name == "cutc-tokenizer" && from.version == 1) ||
                        (from.name == "cutc-parser" && from.version == 1) ||
