@@ -21,7 +21,7 @@ BOOST_AUTO_TEST_SUITE(search_module_suite)
         create_directory(tmp / "fooModule");
         create_directory(tmp / "barModule");
         list<path> search_path = {tmp};
-        compile_state_t state{search_path, {}};
+        compile_state_t state{{}, search_path, {}};
         auto result = search_module(state, "fooModule");
         BOOST_CHECK_EQUAL(result, tmp / "fooModule");
     }
@@ -33,7 +33,7 @@ BOOST_AUTO_TEST_SUITE(search_module_suite)
         create_directories(tmp / "modulesB" / "fooModule");
         create_directories(tmp / "modulesB" / "bazModule");
         list<path> search_path = {tmp / "modulesA", tmp / "modulesB"};
-        compile_state_t state{search_path, {}};
+        compile_state_t state{{}, search_path, {}};
         BOOST_CHECK_THROW(search_module(state, "fooModule"), module_duplicate_error);
     }
 
@@ -44,7 +44,7 @@ BOOST_AUTO_TEST_SUITE(search_module_suite)
         create_directories(tmp / "modulesB" / "barModule");
         create_directories(tmp / "modulesB" / "bazModule");
         list<path> search_path = {tmp / "modulesA", tmp / "modulesB"};
-        compile_state_t state{search_path, {}};
+        compile_state_t state{{}, search_path, {}};
         auto result = search_module(state, "bazModule");
         BOOST_CHECK_EQUAL(result, tmp / "modulesB" / "bazModule");
     }
