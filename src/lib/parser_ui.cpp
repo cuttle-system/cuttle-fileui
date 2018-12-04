@@ -54,6 +54,10 @@ void fileui::get_context_from_module(fileui::compile_state_t &state, const fs::p
         call_tree_t context_tree;
         values_t context_values;
         compile_file(state, rules_path);
-        interpret_context(state, output_file_path, context);
+        try {
+            interpret_context(state, output_file_path, context);
+        } catch (std::exception &exc) {
+            throw std::runtime_error(exc.what() + std::string(" in ") + file_path.string());
+        }
     }
 }
