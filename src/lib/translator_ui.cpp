@@ -20,11 +20,16 @@ namespace fs = boost::filesystem;
 
 void set_translator_output_tree(fileui::compile_state_t &state, language_t lang, const fs::path &file_path, std::string &vm_src) {
     const fs::path &output_file_path = fileui::get_output_file_path(file_path);
-    fileui::compile_file(state, file_path);
-    std::ifstream file (output_file_path.string());
+    if (state.cached_files.count(output_file_path.string())) {
+        vm_src = state.cached_files[output_file_path.string()];
+    } else {
+        fileui::compile_file(state, file_path);
+        std::ifstream file (output_file_path.string());
 
-    vm_src = std::string((std::istreambuf_iterator<char>(file)),
-            std::istreambuf_iterator<char>());
+        vm_src = std::string((std::istreambuf_iterator<char>(file)),
+                             std::istreambuf_iterator<char>());
+        state.cached_files[output_file_path.string()] = vm_src;
+    }
 }
 
 void

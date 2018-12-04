@@ -33,10 +33,17 @@ void cache_file(compile_state_t &state, const fs::path &file_path, const fs::pat
                 call_tree_t &new_tree, values_t &values,
                 bool cache
 ) {
-    std::ifstream config_file(file_path.string());
-    std::string src((std::istreambuf_iterator<char>(config_file)),
-                    std::istreambuf_iterator<char>());
-    config_file.close();
+    std::string src;
+
+    if (state.cached_files.count(file_path.string())) {
+        src = state.cached_files[file_path.string()];
+    } else {
+        std::ifstream config_file(file_path.string());
+        src = std::string((std::istreambuf_iterator<char>(config_file)),
+                        std::istreambuf_iterator<char>());
+        config_file.close();
+        state.cached_files[file_path.string()] = src;
+    }
 
     generator_state_t generator_state;
 
@@ -44,14 +51,16 @@ void cache_file(compile_state_t &state, const fs::path &file_path, const fs::pat
 
     tokenize(tokenizer, src, tokens);
     parse(tokens, tree, context);
-    translate(cutvm_translator, tokens, tree, values, new_tree);
-    generate(cutvm_tokenizer, cutvm_generator, cutvm_context, values, new_tree, generator_state);
-
-    if (cache) {
-        std::ofstream compiled_config_file(compiled_file_path.string());
-        compiled_config_file << generator_state.output;
-        compiled_config_file.close();
-    }
+//    translate(cutvm_translator, tokens, tree, values, new_tree);
+//    generate(cutvm_tokenizer, cutvm_generator, cutvm_context, values, new_tree, generator_state);
+//
+//    if (cache) {
+//        std::ofstream compiled_config_file(compiled_file_path.string());
+//        compiled_config_file << generator_state.output;
+//        compiled_config_file.close();
+//
+//        state.cached_files[compiled_file_path.string()] = generator_state.output;
+//    }
 }
 
 void get_languages_config(const call_tree_t &tree, const tokens_t &tokens, language_t &from, language_t &to) {
@@ -71,11 +80,13 @@ void fileui::get_cached(compile_state_t &state, const fs::path &file_path, const
 ) {
     if (compiled_file_path.empty()) {
         compiled_file_path = get_compiled_file_path(file_path);
-        fs::create_directories(compiled_file_path.parent_path());
-        std::ofstream cutroot_file(
-                (get_compiled_module_path(get_parent_module_path(file_path)) / CUTTLE_FILEUI_ROOT_PATH_FILE).string());
-        cutroot_file << "";
-        cutroot_file.close();
+//        fs::create_directories(compiled_file_path.parent_path());
+        auto cutroot_path = get_compiled_module_path(get_parent_module_path(file_path)) / CUTTLE_FILEUI_ROOT_PATH_FILE;
+        if (!fs::exists(cutroot_path)) {
+            std::ofstream cutroot_file(cutroot_path.string());
+            cutroot_file << "";
+            cutroot_file.close();
+        }
     }
 
     fs::path compiled_cutc_path = compiled_file_path.parent_path() / fs::path(cutc_path.filename().string() + ".cutvm");
@@ -87,7 +98,7 @@ void fileui::get_cached(compile_state_t &state, const fs::path &file_path, const
         throw file_not_found_error(cutc_path);
     }
 
-    if (!exists(compiled_file_path) || !exists(compiled_cutc_path)
+    if (true || !exists(compiled_file_path) || !exists(compiled_cutc_path)
         || last_write_time(compiled_file_path) < last_write_time(file_path)
         || last_write_time(compiled_cutc_path) < last_write_time(cutc_path)
     ) {
@@ -99,10 +110,10 @@ void fileui::get_cached(compile_state_t &state, const fs::path &file_path, const
         initialize(cutvm_context);
 
         language_t from_cutc = {TRANSLATOR_ANY_NAME, TRANSLATOR_ANY_VERSION}, to_cutvm = {"cutvm-cache", 1};
-        get_independent_language_config(state, to_cutvm,
-                cutvm_context, cutvm_tokenizer, cutvm_generator);
+//        get_independent_language_config(state, to_cutvm,
+//                cutvm_context, cutvm_tokenizer, cutvm_generator);
 
-        get_language_translator(state, from_cutc, to_cutvm, cutvm_translator);
+//        get_language_translator(state, from_cutc, to_cutvm, cutvm_translator);
 
         context_t cutc_context;
         tokenizer_config_t cutc_tokenizer;
@@ -140,8 +151,8 @@ void fileui::get_cached(compile_state_t &state, const fs::path &file_path, const
         vm::populate(vm_context1);
         vm::populate(vm_context2);
 
-        interpret_file(vm_context1, compiled_cutc_path, cutc_stack);
-        interpret_file(vm_context2, compiled_file_path, stack);
+        interpret_file(state, vm_context1, compiled_cutc_path, cutc_stack);
+        interpret_file(state, vm_context2, compiled_file_path, stack);
 
         construct_tree(vm_context1, cutc_stack, cutc_tree, cutc_tokens);
         construct_tree(vm_context2, stack, tree, tokens);

@@ -40,34 +40,40 @@ void fileui::compile_file(compile_state_t &state, const fs::path &file_path,
     if (output_file_path.empty()) {
         output_file_path = get_output_file_path(file_path);
         create_directories(output_file_path.parent_path());
-        std::ofstream cutroot_file(
-                (get_output_module_path(get_parent_module_path(file_path)) / CUTTLE_FILEUI_ROOT_PATH_FILE).string());
-        cutroot_file << "";
-        cutroot_file.close();
+        auto cutroot_path = get_output_module_path(get_parent_module_path(file_path)) / CUTTLE_FILEUI_ROOT_PATH_FILE;
+        if (!exists(cutroot_path)) {
+            std::ofstream cutroot_file(cutroot_path.string());
+            cutroot_file << "";
+            cutroot_file.close();
+        }
     }
 
-    values_t values;
-    call_tree_t new_tree;
-    language_t from, to;
+    if (!state.cached_files.count(output_file_path.string())) {
+        values_t values;
+        call_tree_t new_tree;
+        language_t from, to;
 
-    compile_without_generation(state, file_path, compiled_file_path,
-                               new_tree, values,
-                               from, to, cache);
+        compile_without_generation(state, file_path, compiled_file_path,
+                                   new_tree, values,
+                                   from, to, cache);
 
-    context_t context;
-    tokenizer_config_t tokenizer_config;
-    generator_config_t generator_config;
+        context_t context;
+        tokenizer_config_t tokenizer_config;
+        generator_config_t generator_config;
 
-    initialize(context);
+        initialize(context);
 
-    get_independent_language_config(state, to, context, tokenizer_config, generator_config);
+        get_independent_language_config(state, to, context, tokenizer_config, generator_config);
 
-    generator_state_t generator_state;
-    generate(tokenizer_config, generator_config, context, values, new_tree, generator_state);
+        generator_state_t generator_state;
+        generate(tokenizer_config, generator_config, context, values, new_tree, generator_state);
 
-    std::ofstream output_file(output_file_path.string());
-    output_file << generator_state.output;
-    output_file.close();
+        std::ofstream output_file(output_file_path.string());
+        output_file << generator_state.output;
+        output_file.close();
+
+        state.cached_files[output_file_path.string()] = generator_state.output;
+    }
 }
 
 void fileui::compile_files(compile_state_t &state, const fs::path &functions_path) {

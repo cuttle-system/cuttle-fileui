@@ -24,7 +24,7 @@ void config_init_vm_context(vm::context_t &vm_context,
     lang::register_lang_parser_cutvm_functions(vm_context);
 }
 
-void fileui::interpret_context(const fs::path &file_path, context_t &context) {
+void fileui::interpret_context(fileui::compile_state_t &state, const fs::path &file_path, context_t &context) {
     std::deque<vm::value_t> arg_stack;
     vm::context_t vm_context;
 
@@ -33,7 +33,7 @@ void fileui::interpret_context(const fs::path &file_path, context_t &context) {
                            PARSER_CONTEXT_ARRAY_VAR_NAME, parser_config_array,
                            PARSER_CONTEXT_VAR_NAME, (vm::object_t) &context);
 
-    interpret_file(vm_context, file_path, arg_stack);
+    interpret_file(state, vm_context, file_path, arg_stack);
 
     vm::value_t ret;
     vm::call(vm_context, "append_to_context", {}, 0, ret);
@@ -54,6 +54,6 @@ void fileui::get_context_from_module(fileui::compile_state_t &state, const fs::p
         call_tree_t context_tree;
         values_t context_values;
         compile_file(state, rules_path);
-        interpret_context(output_file_path, context);
+        interpret_context(state, output_file_path, context);
     }
 }

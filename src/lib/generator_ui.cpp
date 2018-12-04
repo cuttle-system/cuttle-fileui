@@ -7,6 +7,7 @@
 #include "call_tree.hpp"
 #include "value.hpp"
 #include "compiler.hpp"
+#include "compile_state.hpp"
 #include "std.hpp"
 #include "file_interpreter.hpp"
 
@@ -41,7 +42,7 @@ void config_init_vm_generator_config_args(vm::context_t &vm_context,
     lang::register_lang_generator_arg_cutvm_functions(vm_context);
 }
 
-std::string interpret_generator_config(const fs::path &file_path, generator_config_t &generator_config) {
+std::string interpret_generator_config(fileui::compile_state_t &state, const fs::path &file_path, generator_config_t &generator_config) {
     std::deque<vm::value_t> arg_stack;
     vm::context_t vm_context;
 
@@ -50,7 +51,7 @@ std::string interpret_generator_config(const fs::path &file_path, generator_conf
                                          GENERATOR_CONFIG_ARRAY_VAR_NAME, generator_config_array,
                                          GENERATOR_CONFIG_VAR_NAME, (vm::object_t) &generator_config);
 
-    fileui::interpret_file(vm_context, file_path, arg_stack);
+    fileui::interpret_file(state, vm_context, file_path, arg_stack);
 
     vm::value_t ret;
     vm::call(vm_context, "append_to_generator_config", {}, 0, ret);
@@ -58,7 +59,7 @@ std::string interpret_generator_config(const fs::path &file_path, generator_conf
 }
 
 std::string
-interpret_generator_config_args(const fs::path &file_path, generator_presenter_params_t &presenter_params, int argi) {
+interpret_generator_config_args(fileui::compile_state_t &state, const fs::path &file_path, generator_presenter_params_t &presenter_params, int argi) {
     std::deque<vm::value_t> arg_stack;
     vm::context_t vm_context;
 
@@ -66,7 +67,7 @@ interpret_generator_config_args(const fs::path &file_path, generator_presenter_p
                                          PRESENTER_PARAMS_VAR_NAME, (vm::object_t) &presenter_params,
                                          PRESENTER_PARAMS_ARGI_VAR_NAME, argi);
 
-    fileui::interpret_file(vm_context, file_path, arg_stack);
+    fileui::interpret_file(state, vm_context, file_path, arg_stack);
 
     vm::value_t ret;
     return *arg_stack.back().data.string;
@@ -79,7 +80,7 @@ void get_generator_args(fileui::compile_state_t &state, const fs::path &args_pat
         const fs::path &rules_path = file_path / "rules.cutl";
         const fs::path &output_file_path = fileui::get_output_file_path(rules_path);
         compile_file(state, rules_path);
-        interpret_generator_config_args(output_file_path, presenter_params, std::stoi(file_path.filename().string()));
+        interpret_generator_config_args(state, output_file_path, presenter_params, std::stoi(file_path.filename().string()));
     }
 }
 
@@ -99,7 +100,7 @@ void fileui::get_generator_from_module(compile_state_t &state, const fs::path &m
         call_tree_t context_tree;
         values_t context_values;
         compile_file(state, rules_path);
-        auto function_name = interpret_generator_config(output_file_path, generator_config);
+        auto function_name = interpret_generator_config(state, output_file_path, generator_config);
         if (exists(args_path)) {
             get_generator_args(state, args_path, generator_config.presenters_params[function_name]);
         }
