@@ -46,8 +46,11 @@ void fileui::get_context_from_module(fileui::compile_state_t &state, const fs::p
         return;
     }
 
-    for (const auto &file_path_it : fs::directory_iterator(functions_path)) {
-        const fs::path &file_path = file_path_it.path();
+    std::vector<fs::path> files;
+    std::copy(fs::directory_iterator(functions_path), fs::directory_iterator(), back_inserter(files));
+    sort(files.begin(), files.end());
+
+    for (const fs::path &file_path : files) {
         const fs::path &rules_path = file_path / "rules.cutl";
         const fs::path &compiled_file_path = fileui::get_compiled_file_path(rules_path);
         const fs::path &output_file_path = fileui::get_output_file_path(rules_path);
