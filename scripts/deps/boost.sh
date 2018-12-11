@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-if [[ "$1" -eq "dev" ]]; then
+if [[ "$1" = "dev" ]]; then
     git clone git@github.com:boostorg/boost.git
 else
     git clone https://github.com/boostorg/boost.git
