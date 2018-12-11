@@ -7,5 +7,5 @@ cd ../..
 for dep in $SCRIPTS_PATH/deps/*
 do
     echo Getting dependency: $dep
-    $dep
+    bash $dep $1
 done
