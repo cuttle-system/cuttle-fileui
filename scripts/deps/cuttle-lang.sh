@@ -4,4 +4,4 @@ if [[ "$1" = "dev" ]]; then
 else
     git clone https://github.com/cuttle-system/cuttle-lang.git
 fi
-bash cuttle-lang/scripts/get-deps.sh
+bash cuttle-lang/scripts/get-deps.sh $1
