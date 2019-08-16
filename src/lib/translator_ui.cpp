@@ -1,9 +1,13 @@
 #include <iostream>
 #include "context.hpp"
 #include "generator_config.hpp"
+
 #include "translator_ui.hpp"
 #include "cutvm_translator.hpp"
 #include "lang_cutvm_translator.hpp"
+#include "lang_generator_cutvm_translator.hpp"
+#include "lang_parser_cutvm_translator.hpp"
+
 #include "dictionary_methods.hpp"
 #include "fileui_module.hpp"
 #include "fileui_file.hpp"
@@ -80,14 +84,17 @@ void fileui::get_language_translator(compile_state_t &state, const language_t &f
         lang::get_cutvm_translator(translator);
     } else if (to.name == "cutvm-translator-output" && to.version == 1) {
         lang::get_output_translator(translator);
+    } else if (from.name == "cutc-generator" && from.version == 1 && to.name == "cutvm" && to.version == 1) {
+        lang::get_lang_generator_cutvm_translator(translator);
+    } else if (from.name == "cutc-parser" && from.version == 2 && to.name == "cutvm" && to.version == 1) {
+        lang::get_lang_parser_cutvm_translator(translator);
     } else if ((
                        (from.name == "cutc-tokenizer" && from.version == 1) ||
                        (from.name == "cutc-parser" && from.version == 1) ||
-                       (from.name == "cutc-generator-func" && from.version == 1) ||
                        (from.name == "cutc-generator-arg" && from.version == 1)
                ) && to.name == "cutvm" && to.version == 1) {
         lang::get_lang_cutvm_translator(translator);
-    } else if (to.name == from.name & to.version == from.version) {
+    } else if (to.name == from.name && to.version == from.version) {
         initialize(translator.dictionary);
         translator.to = to;
         translator.from = from;
