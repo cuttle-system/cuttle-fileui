@@ -1,6 +1,7 @@
 #include "fileui_module.hpp"
 #include "incorrect_module_structure_error.hpp"
 #include "module_duplicate_error.hpp"
+#include "module_not_found_error.hpp"
 
 using namespace cuttle;
 
@@ -39,6 +40,9 @@ fs::path fileui::search_module(const compile_state_t &state, const std::string &
             found = true;
             found_path = expected_path;
         }
+    }
+    if (!found) {
+        throw module_not_found_error(module_name);
     }
     return found_path;
 }

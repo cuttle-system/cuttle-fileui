@@ -35,7 +35,7 @@ void fileui::interpret_tokenizer_config(fileui::compile_state_t &state, const bo
 
 void
 fileui::get_tokenizer_from_module(compile_state_t &state, const fs::path &module_path, tokenizer_config_t &tokenizer) {
-    fs::path tokenizer_file_path = module_path / "parser" / "tokenizer" / "rules.cutl";
+    fs::path tokenizer_file_path = module_path / "tokenizer" / "rules.cutl";
     if (state.cached_tokenizer_configs.count(tokenizer_file_path.string())) {
         tokenizer = state.cached_tokenizer_configs[tokenizer_file_path.string()];
     } else {

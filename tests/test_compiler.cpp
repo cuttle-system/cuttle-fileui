@@ -7,6 +7,7 @@
 #include "test_utils.hpp"
 #include "compiler.hpp"
 #include "module_duplicate_error.hpp"
+#include "module_not_found_error.hpp"
 #include "fileui_module.hpp"
 
 using namespace std;
@@ -47,6 +48,19 @@ BOOST_AUTO_TEST_SUITE(search_module_suite)
         compile_state_t state{{}, search_path, {}};
         auto result = search_module(state, "bazModule");
         BOOST_CHECK_EQUAL(result, tmp / "modulesB" / "bazModule");
+    }
+
+    BOOST_AUTO_TEST_CASE(case4) {
+        path tmp = create_tmp();
+        create_directories(tmp / "modulesA" / "fooModule");
+        create_directories(tmp / "modulesA" / "barModule");
+        create_directories(tmp / "modulesB" / "barModule");
+        create_directories(tmp / "modulesB" / "bazModule");
+        list<path> search_path = {tmp / "modulesA", tmp / "modulesB"};
+        compile_state_t state{{}, search_path, {}};
+        BOOST_CHECK_THROW(do {
+            search_module(state, "quuxModule");
+        } while (0), module_not_found_error);
     }
 
 BOOST_AUTO_TEST_SUITE_END()
